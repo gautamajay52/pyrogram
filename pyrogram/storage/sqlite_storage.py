@@ -137,7 +137,7 @@ class SQLiteStorage(Storage):
         self.conn.commit()
 
     async def close(self):
-        logging.exception("sldkdl", stack_info=True, stacklevel=0)
+        logging.exception(".....closing session....", stack_info=True, stacklevel=0)
         self.conn.close()
 
     async def delete(self):
