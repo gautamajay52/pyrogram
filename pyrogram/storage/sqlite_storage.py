@@ -24,7 +24,8 @@ from typing import List, Tuple, Any
 from pyrogram import raw
 from .storage import Storage
 from .. import utils
-
+import logging
+import traceback
 # language=SQLite
 SCHEMA = """
 CREATE TABLE sessions
@@ -136,6 +137,7 @@ class SQLiteStorage(Storage):
         self.conn.commit()
 
     async def close(self):
+        logging.exception("sldkdl", stack_info=True, stacklevel=0)
         self.conn.close()
 
     async def delete(self):
