@@ -84,7 +84,7 @@ BEGIN
 END;
 """
 
-
+log = logging.getLogger(__name__)
 def get_input_peer(peer_id: int, access_hash: int, peer_type: str):
     if peer_type in ["user", "bot"]:
         return raw.types.InputPeerUser(
@@ -137,7 +137,7 @@ class SQLiteStorage(Storage):
         self.conn.commit()
 
     async def close(self):
-        logging.exception(".....closing session....", stack_info=True, stacklevel=0)
+        log.exception(".....closing session....", stack_info=True, stacklevel=0)
         self.conn.close()
 
     async def delete(self):
