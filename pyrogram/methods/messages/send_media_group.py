@@ -445,7 +445,9 @@ class SendMediaGroup:
                 raw.types.InputSingleMedia(
                     media=media,
                     random_id=self.rnd_id(),
-                    **await self.parser.parse(i.caption, i.parse_mode)
+                    **await utils.parse_text_entities(
+                        self, i.caption, i.parse_mode, i.caption_entities
+                    ),
                 )
             )
 
@@ -481,7 +483,6 @@ class SendMediaGroup:
             if getattr(u, "connection_id", None):
                 conn_id = u.connection_id
                 break
-
 
         return await utils.parse_messages(
             self,
