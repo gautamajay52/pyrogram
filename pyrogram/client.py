@@ -1204,10 +1204,11 @@ class Client(Methods):
             #     raise
             # except sqlite3.ProgrammingError:
             #     raise
+            # except TimeoutError as e:
+            #     log.exception(e)
             except Exception:
                 # raise everything
                 raise
-                # log.exception(e, stack_info=True, stacklevel=3)
 
     def guess_mime_type(self, filename: str) -> Optional[str]:
         return self.mimetypes.guess_type(filename)[0]
