@@ -1198,14 +1198,16 @@ class Client(Methods):
                         raise e
                     finally:
                         await cdn_session.stop()
-            except pyrogram.StopTransmission:
+            # except pyrogram.StopTransmission:
+            #     raise
+            # except (FloodWait, FloodPremiumWait):
+            #     raise
+            # except sqlite3.ProgrammingError:
+            #     raise
+            except Exception:
+                # raise everything
                 raise
-            except (FloodWait, FloodPremiumWait):
-                raise
-            except sqlite3.ProgrammingError:
-                raise
-            except Exception as e:
-                log.exception(e, stack_info=True, stacklevel=3)
+                # log.exception(e, stack_info=True, stacklevel=3)
 
     def guess_mime_type(self, filename: str) -> Optional[str]:
         return self.mimetypes.guess_type(filename)[0]
