@@ -23,7 +23,7 @@ import os
 from hashlib import sha1
 from io import BytesIO
 from typing import Optional
-
+import time
 import pyrogram
 from pyrogram import raw
 from pyrogram.connection import Connection
@@ -99,6 +99,11 @@ class Session:
         self.is_started = asyncio.Event()
 
         self.loop = asyncio.get_event_loop()
+        
+        self.retry_count = 0
+        self.start_time = time.time()
+        
+        self.restart_event = asyncio.Event()
 
     async def start(self):
         while True:
@@ -183,8 +188,13 @@ class Session:
         log.info("Session stopped")
 
     async def restart(self):
+        self.restart_event.set()
+        start = time.time()
+        log.warning('[%s] Restarting session', self.client.name)
         await self.stop()
         await self.start()
+        log.warning('[%s] Session restarted in %s seconds', self.client.name, time.time() - start)
+        self.restart_event.clear()
 
     async def handle_packet(self, packet):
         try:
@@ -417,12 +427,21 @@ class Session:
             except (OSError, InternalServerError, ServiceUnavailable) as e:
                 if retries == 0:
                     raise e from None
-
-                (log.warning if retries < 2 else log.info)(
-                    '[%s] Retrying "%s" due to: %s',
+                
+                if not self.restart_event.is_set():
+                    # restart will take less than a second
+                    log.warning('[%s] Restarting session due to: %s', self.client.name, str(e) or repr(e))
+                    self.loop.create_task(self.restart())
+                
+                (log.warning if retries < 11 else log.info)(
+                    '[%s] [%s] Retrying "%s" due to: %s', 
+                    self.client.name,
                     Session.MAX_RETRIES - retries + 1,
                     query_name, str(e) or repr(e)
                 )
+                log.warning(f'{time.time() - self.start_time} seconds since restart req {self.retry_count}')
+                self.retry_count += 1
+                self.start_time = time.time()
 
                 await asyncio.sleep(0.5)
 

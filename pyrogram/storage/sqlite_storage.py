@@ -24,7 +24,8 @@ from typing import List, Tuple, Any
 from pyrogram import raw
 from .storage import Storage
 from .. import utils
-
+import logging
+import traceback
 # language=SQLite
 SCHEMA = """
 CREATE TABLE sessions
@@ -83,7 +84,7 @@ BEGIN
 END;
 """
 
-
+log = logging.getLogger(__name__)
 def get_input_peer(peer_id: int, access_hash: int, peer_type: str):
     if peer_type in ["user", "bot"]:
         return raw.types.InputPeerUser(

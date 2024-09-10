@@ -25,6 +25,7 @@ import platform
 import re
 import shutil
 import sys
+import sqlite3
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from hashlib import sha256
@@ -1197,12 +1198,17 @@ class Client(Methods):
                         raise e
                     finally:
                         await cdn_session.stop()
-            except pyrogram.StopTransmission:
+            # except pyrogram.StopTransmission:
+            #     raise
+            # except (FloodWait, FloodPremiumWait):
+            #     raise
+            # except sqlite3.ProgrammingError:
+            #     raise
+            # except TimeoutError as e:
+            #     log.exception(e)
+            except Exception:
+                # raise everything
                 raise
-            except (FloodWait, FloodPremiumWait):
-                raise
-            except Exception as e:
-                log.exception(e)
 
     def guess_mime_type(self, filename: str) -> Optional[str]:
         return self.mimetypes.guess_type(filename)[0]

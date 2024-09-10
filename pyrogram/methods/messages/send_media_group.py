@@ -482,7 +482,6 @@ class SendMediaGroup:
                 conn_id = u.connection_id
                 break
 
-
         return await utils.parse_messages(
             self,
             raw.types.messages.Messages(
