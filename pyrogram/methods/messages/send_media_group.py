@@ -445,9 +445,7 @@ class SendMediaGroup:
                 raw.types.InputSingleMedia(
                     media=media,
                     random_id=self.rnd_id(),
-                    **await utils.parse_text_entities(
-                        self, i.caption, i.parse_mode, i.caption_entities
-                    ),
+                    **await utils.parse_text_entities(self, i.caption, i.parse_mode, i.caption_entities)
                 )
             )
 
