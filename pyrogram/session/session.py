@@ -189,8 +189,6 @@ class Session:
 
     async def restart(self):
         self.restart_event.set()
-        full_traceback = "".join(traceback.format_stack())
-        log.warning(f"Full traceback:\n{full_traceback}")
         start = time.time()
         log.warning(
             "[%s] [%s] [%s] [%s] Restarting session",
