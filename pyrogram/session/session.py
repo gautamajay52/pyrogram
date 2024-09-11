@@ -442,9 +442,22 @@ class Session:
                     raise e from None
 
                 if not self.restart_event.is_set():
-                    # restart will take less than a second
-                    log.warning('[%s] Restarting session due to: %s', self.client.name, str(e) or repr(e))
+                    # restart usually takes less than a second but ...
+                    # got one case where this got successfully called after an oserror
+                    # and session restarted successfully without any problem and took 26 seconds to restart
+                    log.warning(
+                        '[%s] Restarting "%s" session due to: %s',
+                        self.client.name,
+                        query_name,
+                        str(e) or repr(e),
+                    )
                     self.loop.create_task(self.restart())
+                else:
+                    # multiple oserrors in a row, wait them
+                    try:
+                        await asyncio.wait_for(self.restart_event.wait(), self.WAIT_TIMEOUT)
+                    except asyncio.TimeoutError:
+                        pass
 
                 (log.warning if retries < 11 else log.info)(
                     '[%s] [%s] Retrying "%s" due to: %s', 
