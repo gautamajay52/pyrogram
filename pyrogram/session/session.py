@@ -23,7 +23,7 @@ import os
 from hashlib import sha1
 from io import BytesIO
 from typing import Optional
-import time
+import time, traceback
 import pyrogram
 from pyrogram import raw
 from pyrogram.connection import Connection
@@ -99,10 +99,10 @@ class Session:
         self.is_started = asyncio.Event()
 
         self.loop = asyncio.get_event_loop()
-        
+
         self.retry_count = 0
         self.start_time = time.time()
-        
+
         self.restart_event = asyncio.Event()
 
     async def start(self):
@@ -189,11 +189,26 @@ class Session:
 
     async def restart(self):
         self.restart_event.set()
+        full_traceback = "".join(traceback.format_stack())
+        log.warning(f"Full traceback:\n{full_traceback}")
         start = time.time()
-        log.warning('[%s] Restarting session', self.client.name)
+        log.warning(
+            "[%s] [%s] [%s] [%s] Restarting session",
+            self.client.name,
+            self.client.last_update_time,
+            self.client.is_connected,
+            self.client.is_initialized,
+        )
         await self.stop()
         await self.start()
-        log.warning('[%s] Session restarted in %s seconds', self.client.name, time.time() - start)
+        log.warning(
+            "[%s] [%s] [%s] [%s] Session restarted in %s seconds",
+            self.client.name,
+            self.client.last_update_time,
+            self.client.is_connected,
+            self.client.is_initialized,
+            time.time() - start,
+        )
         self.restart_event.clear()
 
     async def handle_packet(self, packet):
@@ -427,12 +442,12 @@ class Session:
             except (OSError, InternalServerError, ServiceUnavailable) as e:
                 if retries == 0:
                     raise e from None
-                
+
                 if not self.restart_event.is_set():
                     # restart will take less than a second
                     log.warning('[%s] Restarting session due to: %s', self.client.name, str(e) or repr(e))
                     self.loop.create_task(self.restart())
-                
+
                 (log.warning if retries < 11 else log.info)(
                     '[%s] [%s] Retrying "%s" due to: %s', 
                     self.client.name,
