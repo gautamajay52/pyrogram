@@ -142,7 +142,7 @@ class SaveFile:
             is_missing_part = file_id is not None
             file_id = file_id or self.rnd_id()
             md5_sum = md5() if not is_big and not is_missing_part else None
-            
+
             session = Session(
                 self, await self.storage.dc_id(), await self.storage.auth_key(),
                 await self.storage.test_mode(), is_media=True
@@ -222,6 +222,7 @@ class SaveFile:
                     await queue.put(None)
 
                 await asyncio.gather(*workers)
+                await session.stop()
 
                 if isinstance(path, (str, PurePath)):
                     fp.close()
