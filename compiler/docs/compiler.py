@@ -148,6 +148,7 @@ def pyrogram_api():
         messages="""
         Messages
             send_message
+            forward_media_group
             forward_messages
             copy_message
             copy_media_group
@@ -367,6 +368,12 @@ def pyrogram_api():
             answer_shipping_query
             create_invoice_link
             refund_star_payment
+            set_bot_info_description
+            get_bot_info_description
+            set_bot_info_short_description
+            get_bot_info_short_description
+            set_bot_name
+            get_bot_name
         """,
         business="""
         Business
@@ -401,7 +408,7 @@ def pyrogram_api():
         """,
         stories="""
         Stories
-            can_send_story
+            can_post_stories
             copy_story
             delete_stories
             edit_story_caption
@@ -411,12 +418,14 @@ def pyrogram_api():
             get_all_stories
             get_chat_stories
             get_pinned_stories
-            get_stories_archive
+            get_archived_stories
             get_stories
-            hide_stories
+            hide_chat_stories
+            show_chat_stories
             view_stories
-            pin_stories
-            read_stories
+            pin_chat_stories
+            unpin_chat_stories
+            read_chat_stories
             send_story
         """,
         premium="""
@@ -476,7 +485,6 @@ def pyrogram_api():
             BusinessConnection
             BusinessInfo
             BusinessIntro
-            BusinessMessage
             BusinessRecipients
             BusinessWeeklyOpen
             BusinessWorkingHours
@@ -505,6 +513,7 @@ def pyrogram_api():
         """,
         messages_media="""
         Messages & Media
+            BusinessMessage
             Message
             MessageEntity
             Photo
@@ -512,6 +521,11 @@ def pyrogram_api():
             Audio
             AvailableEffect
             Document
+            ForumTopic
+            ForumTopicClosed
+            ForumTopicCreated
+            ForumTopicEdited
+            ForumTopicReopened
             Animation
             Video
             Voice
@@ -526,11 +540,14 @@ def pyrogram_api():
             PollOption
             Dice
             Reaction
+            RefundedPayment
             StarGift
             VideoChatScheduled
             VideoChatStarted
             VideoChatEnded
             VideoChatMembersInvited
+            PhoneCallStarted
+            PhoneCallEnded
             WebAppData
             MessageReactions
             ChatReactions
@@ -538,7 +555,9 @@ def pyrogram_api():
             MyBoost
             BoostsStatus
             Giveaway
-            GiveawayResult
+            GiveawayCreated
+            GiveawayCompleted
+            GiveawayWinners
             Invoice
             GiftCode
             CheckedGiftCode
@@ -547,6 +566,9 @@ def pyrogram_api():
             PaidMediaPreview
             PaymentForm
             ChatBoost
+            ContactRegistered
+            ScreenshotTaken
+            WriteAccessAllowed
         """,
         bot_keyboards="""
         Bot keyboards
@@ -566,7 +588,6 @@ def pyrogram_api():
             MenuButtonWebApp
             MenuButtonDefault
             SentWebAppMessage
-            ForumTopic
             RequestChannelInfo
             RequestChatInfo
             RequestUserInfo
@@ -780,6 +801,7 @@ def pyrogram_api():
         """,
         story="""
         Story
+            Story.reply
             Story.reply_text
             Story.reply_animation
             Story.reply_audio
@@ -818,7 +840,7 @@ def pyrogram_api():
         """,
         star_gift="""
         StarGift
-            StarGift.save
+            StarGift.show
             StarGift.hide
         """
     )
@@ -861,6 +883,7 @@ def pyrogram_api():
             BusinessSchedule
             ChatAction
             ChatEventAction
+            ChatJoinType
             ChatMemberStatus
             ChatMembersFilter
             ChatType
@@ -871,6 +894,7 @@ def pyrogram_api():
             MessagesFilter
             NextCodeType
             ParseMode
+            PhoneCallDiscardReason
             PollType
             PrivacyKey
             ProfileColor

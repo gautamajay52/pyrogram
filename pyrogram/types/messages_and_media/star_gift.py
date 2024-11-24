@@ -36,10 +36,10 @@ class StarGift(Object):
         sticker (:obj:`~pyrogram.types.Sticker`):
             Information about the star gift sticker.
 
-        text (``str``, *optional*):
+        caption (``str``, *optional*):
             Text message.
 
-        entities (List of :obj:`~pyrogram.types.MessageEntity`, *optional*):
+        caption_entities (List of :obj:`~pyrogram.types.MessageEntity`, *optional*):
             For text messages, special entities like usernames, URLs, bot commands, etc. that appear in the text.
 
         message_id (``int``, *optional*):
@@ -47,6 +47,12 @@ class StarGift(Object):
 
         date (``datetime``, *optional*):
             Date when the star gift was received.
+
+        first_sale_date (``datetime``, *optional*):
+            Date when the star gift was first purchased.
+
+        last_sale_date (``datetime``, *optional*):
+            Date when the star gift was last purchased.
 
         from_user (:obj:`~pyrogram.types.User`, *optional*):
             User who sent the star gift.
@@ -73,6 +79,9 @@ class StarGift(Object):
 
         is_saved (``bool``, *optional*):
             True, if the star gift is saved in profile.
+
+        is_sold_out (``bool``, *optional*):
+            True, if the star gift is sold out.
     """
 
     def __init__(
@@ -81,10 +90,12 @@ class StarGift(Object):
         client: "pyrogram.Client" = None,
         id: int,
         sticker: "types.Sticker",
-        text: Optional[str] = None,
-        entities: List["types.MessageEntity"] = None,
+        caption: Optional[str] = None,
+        caption_entities: List["types.MessageEntity"] = None,
         message_id: Optional[int] = None,
         date: Optional[datetime] = None,
+        first_sale_date: Optional[datetime] = None,
+        last_sale_date: Optional[datetime] = None,
         from_user: Optional["types.User"] = None,
         price: Optional[int] = None,
         convert_price: Optional[int] = None,
@@ -92,16 +103,19 @@ class StarGift(Object):
         total_amount: Optional[int] = None,
         is_limited: Optional[bool] = None,
         is_name_hidden: Optional[bool] = None,
-        is_saved: Optional[bool] = None
+        is_saved: Optional[bool] = None,
+        is_sold_out: Optional[bool] = None
     ):
         super().__init__(client)
 
         self.id = id
         self.sticker = sticker
-        self.text = text
-        self.entities = entities
+        self.caption = caption
+        self.caption_entities = caption_entities
         self.message_id = message_id
         self.date = date
+        self.first_sale_date = first_sale_date
+        self.last_sale_date = last_sale_date
         self.from_user = from_user
         self.price = price
         self.convert_price = convert_price
@@ -110,6 +124,7 @@ class StarGift(Object):
         self.is_limited = is_limited
         self.is_name_hidden = is_name_hidden
         self.is_saved = is_saved
+        self.is_sold_out = is_sold_out
 
     @staticmethod
     async def _parse(
@@ -127,6 +142,9 @@ class StarGift(Object):
             available_amount=getattr(star_gift, "availability_remains", None),
             total_amount=getattr(star_gift, "availability_total", None),
             is_limited=getattr(star_gift, "limited", None),
+            first_sale_date=utils.timestamp_to_datetime(getattr(star_gift, "first_sale_date", None)),
+            last_sale_date=utils.timestamp_to_datetime(getattr(star_gift, "last_sale_date", None)),
+            is_sold_out=getattr(star_gift, "sold_out", None),
             client=client
         )
 
@@ -138,6 +156,12 @@ class StarGift(Object):
     ) -> "StarGift":
         doc = user_star_gift.gift.sticker
         attributes = {type(i): i for i in doc.attributes}
+
+        caption, caption_entities = (
+            utils.parse_text_with_entities(
+                client, getattr(user_star_gift, "message", None), users
+            )
+        ).values()
 
         return StarGift(
             id=user_star_gift.gift.id,
@@ -152,7 +176,8 @@ class StarGift(Object):
             is_saved=not user_star_gift.unsaved if getattr(user_star_gift, "unsaved", None) else None,
             from_user=types.User._parse(client, users.get(user_star_gift.from_id)) if getattr(user_star_gift, "from_id", None) else None,
             message_id=getattr(user_star_gift, "msg_id", None),
-            **utils.parse_text_with_entities(client, getattr(user_star_gift, "message", None), users),
+            caption=caption,
+            caption_entities=caption_entities,
             client=client
         )
 
@@ -167,6 +192,12 @@ class StarGift(Object):
         doc = action.gift.sticker
         attributes = {type(i): i for i in doc.attributes}
 
+        caption, caption_entities = (
+            utils.parse_text_with_entities(
+                client, getattr(action, "message", None), users
+            )
+        ).values()
+
         return StarGift(
             id=action.gift.id,
             sticker=await types.Sticker._parse(client, doc, attributes),
@@ -180,12 +211,13 @@ class StarGift(Object):
             is_saved=getattr(action, "saved", None),
             from_user=types.User._parse(client, users.get(utils.get_raw_peer_id(message.peer_id))),
             message_id=message.id,
-            **utils.parse_text_with_entities(client, getattr(action, "message", None), users),
+            caption=caption,
+            caption_entities=caption_entities,
             client=client
         )
 
-    async def save(self) -> bool:
-        """Bound method *save* of :obj:`~pyrogram.types.StarGift`.
+    async def show(self) -> bool:
+        """Bound method *show* of :obj:`~pyrogram.types.StarGift`.
 
         Use as a shortcut for:
 
@@ -199,7 +231,7 @@ class StarGift(Object):
         Example:
             .. code-block:: python
 
-                await star_gift.save()
+                await star_gift.show()
 
         Returns:
             ``bool``: On success, True is returned.

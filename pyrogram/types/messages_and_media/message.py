@@ -72,11 +72,26 @@ class Message(Object, Update):
             The supergroup itself for messages from anonymous group administrators.
             The linked channel for messages automatically forwarded to the discussion group.
 
+        sender_boost_count (``int``, *optional*):
+            If the sender of the message boosted the chat, the number of boosts added by the user.
+
+        sender_business_bot (:obj:`~pyrogram.types.User`, *optional*):
+            The bot that actually sent the message on behalf of the business account. Available only for outgoing messages sent on behalf of the connected business account.
+
         date (:py:obj:`~datetime.datetime`, *optional*):
             Date the message was sent.
 
         chat (:obj:`~pyrogram.types.Chat`, *optional*):
             Conversation the message belongs to.
+
+        topic_message (``bool``, *optional*):
+            True, if the message is sent to a forum topic.
+
+        automatic_forward (``bool``, *optional*):
+            True, if the message is a channel post that was automatically forwarded to the connected discussion group.
+
+        from_offline (``bool``, *optional*):
+            True, if the message was sent by an implicit action, for example, as an away or a greeting business message, or as a scheduled message.
 
         topic (:obj:`~pyrogram.types.ForumTopic`, *optional*):
             Topic the message belongs to.
@@ -146,9 +161,8 @@ class Message(Object, Update):
         paid_media (:obj:`~pyrogram.types.PaidMediaInfo`, *optional*):
             The message is a paid media message.
 
-        show_above_text (``bool``, *optional*):
-            If True, link preview will be shown above the message text.
-            Otherwise, the link preview will be shown below the message text.
+        show_caption_above_media (``bool``, *optional*):
+            If True, caption must be shown above the message media.
 
         edit_date (:py:obj:`~datetime.datetime`, *optional*):
             Date the message was last edited.
@@ -223,6 +237,9 @@ class Message(Object, Update):
         video (:obj:`~pyrogram.types.Video`, *optional*):
             Message is a video, information about the video.
 
+        video_processing_pending (``bool``, *optional*):
+            True, if the video is still processing.
+
         alternative_videos (List of :obj:`~pyrogram.types.Video`, *optional*):
             Alternative qualities of the video, if the message is a video.
 
@@ -262,6 +279,9 @@ class Message(Object, Update):
 
         left_chat_member (:obj:`~pyrogram.types.User`, *optional*):
             A member was removed from the group, information about them (this member may be the bot itself).
+
+        chat_join_type (:obj:`~pyrogram.enums.ChatJoinType`, *optional*):
+            This field will contain the enumeration type of how the user had joined the chat.
 
         new_chat_title (``str``, *optional*):
             A chat title was changed to this value.
@@ -314,9 +334,6 @@ class Message(Object, Update):
         forwards (``int``, *optional*):
             Channel post forwards.
 
-        sender_boost_count (``int``, *optional*):
-            The number of boosts applied by the sender.
-
         via_bot (:obj:`~pyrogram.types.User`):
             The information of the bot that generated the message from an inline query of a user.
 
@@ -327,7 +344,7 @@ class Message(Object, Update):
             An exception is made for your own personal chat; messages sent there will be incoming.
 
         quote (``bool``, *optional*):
-            The message contains a quote.
+            If True, message contains a quote.
 
         matches (List of regex Matches, *optional*):
             A list containing all `Match Objects <https://docs.python.org/3/library/re.html#match-objects>`_ that match
@@ -368,6 +385,12 @@ class Message(Object, Update):
         video_chat_members_invited (:obj:`~pyrogram.types.VoiceChatParticipantsInvited`, *optional*):
             Service message: new members were invited to the voice chat.
 
+        phone_call_started (:obj:`~pyrogram.types.PhoneCallStarted`, *optional*):
+            Service message: phone call started.
+
+        phone_call_ended (:obj:`~pyrogram.types.PhoneCallEnded`, *optional*):
+            Service message: phone call ended.
+
         web_app_data (:obj:`~pyrogram.types.WebAppData`, *optional*):
             Service message: web app data sent to the bot.
 
@@ -383,8 +406,17 @@ class Message(Object, Update):
         successful_payment (:obj:`~pyrogram.types.SuccessfulPayment`, *optional*):
             Service message: successful payment.
 
-        giveaway_launched (``bool``, *optional*):
+        refunded_payment (:obj:`~pyrogram.types.RefundedPayment`, *optional*):
+            Service message: refunded payment.
+
+        giveaway_created (``bool``, *optional*):
             Service message: giveaway launched.
+
+        giveaway_winners (:obj:`~pyrogram.types.GiveawayWinners`, *optional*):
+            A giveaway with public winners was completed.
+
+        giveaway_completed (:obj:`~pyrogram.types.GiveawayCompleted`, *optional*):
+            Service message: a giveaway without public winners was completed.
 
         chat_ttl_period (``int``, *optional*):
             Service message: chat TTL period changed.
@@ -392,8 +424,17 @@ class Message(Object, Update):
         boosts_applied (``int``, *optional*):
             Service message: how many boosts were applied.
 
-        join_request_approved (``bool``, *optional*):
-            Service message: user join request approved
+        write_access_allowed (:obj:`~pyrogram.types.WriteAccessAllowed`, *optional*):
+            Service message: the user allowed the bot to write messages after adding it to the attachment or side menu, launching a Web App from a link, or accepting an explicit request from a Web App sent by the method `requestWriteAccess <https://core.telegram.org/bots/webapps#initializing-mini-apps>`__
+
+        connected_website (``str``, *optional*):
+            The domain name of the website on which the user has logged in. `More about Telegram Login <https://core.telegram.org/widgets/login>`__
+
+        contact_registered (:obj:`~pyrogram.types.ContactRegistered`, *optional*):
+            Service message: contact registered in Telegram.
+
+        screenshot_taken ((:obj:`~pyrogram.types.ScreenshotTaken`, *optional*):
+            Service message: screenshot of a message in the chat has been taken.
 
         business_connection_id (``str``, *optional*):
             Unique identifier of the business connection from which the message was received.
@@ -414,7 +455,7 @@ class Message(Object, Update):
             Generate a link to this message, only for groups and channels.
     """
 
-    # TODO: Add game missing field, connected_website
+    # TODO: Add game missing field
 
     def __init__(
         self,
@@ -423,8 +464,15 @@ class Message(Object, Update):
         id: int,
         from_user: "types.User" = None,
         sender_chat: "types.Chat" = None,
+        sender_boost_count: int = None,
+        sender_business_bot: "types.User" = None,
         date: datetime = None,
         chat: "types.Chat" = None,
+        topic_message: bool = None,
+        automatic_forward: bool = None,
+        from_offline: bool = None,
+        show_caption_above_media: bool = None,
+        quote: bool = None,
         topic: "types.ForumTopic" = None,
         forward_from: "types.User" = None,
         forward_sender_name: str = None,
@@ -447,7 +495,6 @@ class Message(Object, Update):
         from_scheduled: bool = None,
         media: "enums.MessageMediaType" = None,
         paid_media: "types.PaidMediaInfo" = None,
-        show_above_text: bool = None,
         edit_date: datetime = None,
         edit_hidden: bool = None,
         media_group_id: int = None,
@@ -466,10 +513,12 @@ class Message(Object, Update):
         animation: "types.Animation" = None,
         game: "types.Game" = None,
         giveaway: "types.Giveaway" = None,
-        giveaway_result: "types.GiveawayResult" = None,
+        giveaway_winners: "types.GiveawayWinners" = None,
+        giveaway_completed: "types.GiveawayCompleted" = None,
         invoice: "types.Invoice" = None,
         story: "types.Story" = None,
         video: "types.Video" = None,
+        video_processing_pending: bool = None,
         alternative_videos: List["types.Video"] = None,
         voice: "types.Voice" = None,
         video_note: "types.VideoNote" = None,
@@ -480,9 +529,9 @@ class Message(Object, Update):
         web_page: "types.WebPage" = None,
         poll: "types.Poll" = None,
         dice: "types.Dice" = None,
-        stars_amount: int = None,
         new_chat_members: List["types.User"] = None,
         left_chat_member: "types.User" = None,
+        chat_join_type: "enums.ChatJoinType" = None,
         new_chat_title: str = None,
         new_chat_photo: "types.Photo" = None,
         delete_chat_photo: bool = None,
@@ -495,10 +544,8 @@ class Message(Object, Update):
         game_high_score: int = None,
         views: int = None,
         forwards: int = None,
-        sender_boost_count: int = None,
         via_bot: "types.User" = None,
         outgoing: bool = None,
-        quote: bool = None,
         matches: List[Match] = None,
         command: List[str] = None,
         forum_topic_created: "types.ForumTopicCreated" = None,
@@ -511,15 +558,21 @@ class Message(Object, Update):
         video_chat_started: "types.VideoChatStarted" = None,
         video_chat_ended: "types.VideoChatEnded" = None,
         video_chat_members_invited: "types.VideoChatMembersInvited" = None,
+        phone_call_started: "types.PhoneCallStarted" = None,
+        phone_call_ended: "types.PhoneCallEnded" = None,
         web_app_data: "types.WebAppData" = None,
         gift_code: "types.GiftCode" = None,
         star_gift: "types.StarGift" = None,
         requested_chats: "types.RequestedChats" = None,
         successful_payment: "types.SuccessfulPayment" = None,
-        giveaway_launched: bool = None,
+        refunded_payment: "types.RefundedPayment" = None,
+        giveaway_created: bool = None,
         chat_ttl_period: int = None,
         boosts_applied: int = None,
-        join_request_approved: bool = None,
+        write_access_allowed: "types.WriteAccessAllowed" = None,
+        connected_website: str = None,
+        contact_registered: "types.ContactRegistered" = None,
+        screenshot_taken: "types.ScreenshotTaken" = None,
         business_connection_id: str = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
@@ -535,8 +588,15 @@ class Message(Object, Update):
         self.id = id
         self.from_user = from_user
         self.sender_chat = sender_chat
+        self.sender_boost_count = sender_boost_count
+        self.sender_business_bot = sender_business_bot
         self.date = date
         self.chat = chat
+        self.topic_message = topic_message
+        self.automatic_forward = automatic_forward
+        self.from_offline = from_offline
+        self.show_caption_above_media = show_caption_above_media
+        self.quote = quote
         self.topic = topic
         self.forward_from = forward_from
         self.forward_sender_name = forward_sender_name
@@ -559,7 +619,6 @@ class Message(Object, Update):
         self.from_scheduled = from_scheduled
         self.media = media
         self.paid_media = paid_media
-        self.show_above_text = show_above_text
         self.edit_date = edit_date
         self.edit_hidden = edit_hidden
         self.media_group_id = media_group_id
@@ -578,10 +637,12 @@ class Message(Object, Update):
         self.animation = animation
         self.game = game
         self.giveaway = giveaway
-        self.giveaway_result = giveaway_result
+        self.giveaway_winners = giveaway_winners
+        self.giveaway_completed = giveaway_completed
         self.invoice = invoice
         self.story = story
         self.video = video
+        self.video_processing_pending = video_processing_pending
         self.alternative_videos = alternative_videos
         self.voice = voice
         self.video_note = video_note
@@ -592,9 +653,9 @@ class Message(Object, Update):
         self.web_page = web_page
         self.poll = poll
         self.dice = dice
-        self.stars_amount = stars_amount
         self.new_chat_members = new_chat_members
         self.left_chat_member = left_chat_member
+        self.chat_join_type = chat_join_type
         self.new_chat_title = new_chat_title
         self.new_chat_photo = new_chat_photo
         self.delete_chat_photo = delete_chat_photo
@@ -607,12 +668,11 @@ class Message(Object, Update):
         self.game_high_score = game_high_score
         self.views = views
         self.forwards = forwards
-        self.sender_boost_count = sender_boost_count
         self.via_bot = via_bot
         self.outgoing = outgoing
-        self.quote = quote
         self.matches = matches
         self.command = command
+        self.screenshot_taken = screenshot_taken
         self.business_connection_id = business_connection_id
         self.reply_markup = reply_markup
         self.forum_topic_created = forum_topic_created
@@ -625,15 +685,20 @@ class Message(Object, Update):
         self.video_chat_started = video_chat_started
         self.video_chat_ended = video_chat_ended
         self.video_chat_members_invited = video_chat_members_invited
+        self.phone_call_started = phone_call_started
+        self.phone_call_ended = phone_call_ended
         self.web_app_data = web_app_data
         self.gift_code = gift_code
         self.star_gift = star_gift
         self.requested_chats = requested_chats
         self.successful_payment = successful_payment
-        self.giveaway_launched = giveaway_launched
+        self.refunded_payment = refunded_payment
+        self.giveaway_created = giveaway_created
         self.chat_ttl_period = chat_ttl_period
         self.boosts_applied = boosts_applied
-        self.join_request_approved = join_request_approved
+        self.write_access_allowed = write_access_allowed
+        self.connected_website = connected_website
+        self.contact_registered = contact_registered
         self.reactions = reactions
         self.raw = raw
 
@@ -702,25 +767,38 @@ class Message(Object, Update):
             video_chat_started = None
             video_chat_ended = None
             video_chat_members_invited = None
+            phone_call_started = None
+            phone_call_ended = None
             web_app_data = None
             gift_code = None
-            giveaway_launched = None
+            giveaway_created = None
             requested_chats = None
             successful_payment = None
+            refunded_payment = None
             chat_ttl_period = None
             boosts_applied = None
-            join_request_approved = None
-            stars_amount = None
             star_gift = None
+            giveaway_completed = None
+            connected_website = None
+            write_access_allowed = None
+            screenshot_taken = None
+            chat_join_type = None
+            contact_registered = None
 
             service_type = None
 
             if isinstance(action, raw.types.MessageActionChatAddUser):
                 new_chat_members = [types.User._parse(client, users[i]) for i in action.users]
                 service_type = enums.MessageServiceType.NEW_CHAT_MEMBERS
+                chat_join_type = enums.ChatJoinType.BY_ADD
             elif isinstance(action, raw.types.MessageActionChatJoinedByLink):
                 new_chat_members = [types.User._parse(client, users[utils.get_raw_peer_id(message.from_id)])]
                 service_type = enums.MessageServiceType.NEW_CHAT_MEMBERS
+                chat_join_type = enums.ChatJoinType.BY_LINK
+            elif isinstance(action, raw.types.MessageActionChatJoinedByRequest):
+                new_chat_members = [types.User._parse(client, users[utils.get_raw_peer_id(message.from_id)])]
+                service_type = enums.MessageServiceType.NEW_CHAT_MEMBERS
+                chat_join_type = enums.ChatJoinType.BY_REQUEST
             elif isinstance(action, raw.types.MessageActionChatDeleteUser):
                 left_chat_member = types.User._parse(client, users[action.user_id])
                 service_type = enums.MessageServiceType.LEFT_CHAT_MEMBERS
@@ -781,13 +859,35 @@ class Message(Object, Update):
             elif isinstance(action, raw.types.MessageActionInviteToGroupCall):
                 video_chat_members_invited = types.VideoChatMembersInvited._parse(client, action, users)
                 service_type = enums.MessageServiceType.VIDEO_CHAT_MEMBERS_INVITED
+            elif isinstance(action, raw.types.MessageActionPhoneCall):
+                if action.reason:
+                    phone_call_ended = types.PhoneCallEnded._parse(action)
+                    service_type = enums.MessageServiceType.PHONE_CALL_ENDED
+                else:
+                    phone_call_started = types.PhoneCallStarted._parse(action)
+                    service_type = enums.MessageServiceType.PHONE_CALL_STARTED
             elif isinstance(action, raw.types.MessageActionWebViewDataSentMe):
                 web_app_data = types.WebAppData._parse(action)
                 service_type = enums.MessageServiceType.WEB_APP_DATA
             elif isinstance(action, raw.types.MessageActionGiveawayLaunch):
-                giveaway_launched = True
-                stars_amount = getattr(action, "stars", None)
-                service_type = enums.MessageServiceType.GIVEAWAY_LAUNCH
+                giveaway_created = await types.GiveawayCreated._parse(client, action)
+                service_type = enums.MessageServiceType.GIVEAWAY_CREATED
+            elif isinstance(action, raw.types.MessageActionGiveawayResults):
+                service_type = enums.MessageServiceType.GIVEAWAY_COMPLETED
+                giveaway_completed = await types.GiveawayCompleted._parse(
+                    client,
+                    action,
+                    types.Chat._parse(client, message, users, chats, is_chat=True),
+                    getattr(
+                        getattr(
+                            message,
+                            "reply_to",
+                            None
+                        ),
+                        "reply_to_msg_id",
+                        None
+                    )
+                )
             elif isinstance(action, raw.types.MessageActionGiftCode):
                 gift_code = types.GiftCode._parse(client, action, users, chats)
                 service_type = enums.MessageServiceType.GIFT_CODE
@@ -795,20 +895,33 @@ class Message(Object, Update):
                 requested_chats = types.RequestedChats._parse(client, action)
                 service_type = enums.MessageServiceType.REQUESTED_CHAT
             elif isinstance(action, (raw.types.MessageActionPaymentSent, raw.types.MessageActionPaymentSentMe)):
-                successful_payment = types.SuccessfulPayment._parse(client, action)
+                successful_payment = types.SuccessfulPayment._parse(action)
                 service_type = enums.MessageServiceType.SUCCESSFUL_PAYMENT
+            elif isinstance(action, raw.types.MessageActionPaymentRefunded):
+                refunded_payment = types.RefundedPayment._parse(action)
+                service_type = enums.MessageServiceType.REFUNDED_PAYMENT
             elif isinstance(action, raw.types.MessageActionSetMessagesTTL):
                 chat_ttl_period = action.period
                 service_type = enums.MessageServiceType.CHAT_TTL_CHANGED
             elif isinstance(action, raw.types.MessageActionBoostApply):
                 boosts_applied = action.boosts
                 service_type = enums.MessageServiceType.BOOST_APPLY
-            elif isinstance(action, raw.types.MessageActionChatJoinedByRequest):
-                join_request_approved = True
-                service_type = enums.MessageServiceType.JOIN_REQUEST_APPROVED
             elif isinstance(action, raw.types.MessageActionStarGift):
                 star_gift = await types.StarGift._parse_action(client, message, users)
                 service_type = enums.MessageServiceType.STAR_GIFT
+            elif isinstance(action, raw.types.MessageActionBotAllowed):
+                connected_website = getattr(action, "domain", None)
+                if connected_website:
+                    service_type = enums.MessageServiceType.CONNECTED_WEBSITE
+                else:
+                    write_access_allowed = types.WriteAccessAllowed._parse(action)
+                    service_type = enums.MessageServiceType.WRITE_ACCESS_ALLOWED
+            elif isinstance(action, raw.types.MessageActionScreenshotTaken):
+                service_type = enums.MessageServiceType.SCREENSHOT_TAKEN
+                screenshot_taken = types.ScreenshotTaken()
+            elif isinstance(action, raw.types.MessageActionContactSignUp):
+                service_type = enums.MessageServiceType.CONTACT_REGISTERED
+                contact_registered = types.ContactRegistered()
 
             from_user = types.User._parse(client, users.get(user_id, None))
             sender_chat = types.Chat._parse(client, message, users, chats, is_chat=False) if not from_user else None
@@ -841,17 +954,24 @@ class Message(Object, Update):
                 video_chat_started=video_chat_started,
                 video_chat_ended=video_chat_ended,
                 video_chat_members_invited=video_chat_members_invited,
+                phone_call_started=phone_call_started,
+                phone_call_ended=phone_call_ended,
                 web_app_data=web_app_data,
-                giveaway_launched=giveaway_launched,
+                giveaway_created=giveaway_created,
+                giveaway_completed=giveaway_completed,
                 gift_code=gift_code,
                 star_gift=star_gift,
-                stars_amount=stars_amount,
                 requested_chats=requested_chats,
                 successful_payment=successful_payment,
+                refunded_payment=refunded_payment,
                 chat_ttl_period=chat_ttl_period,
                 boosts_applied=boosts_applied,
-                join_request_approved=join_request_approved,
+                chat_join_type=chat_join_type,
                 business_connection_id=business_connection_id,
+                connected_website=connected_website,
+                write_access_allowed=write_access_allowed,
+                contact_registered=contact_registered,
+                screenshot_taken=screenshot_taken,
                 raw=message,
                 client=client
                 # TODO: supergroup_chat_created
@@ -886,6 +1006,7 @@ class Message(Object, Update):
             client.message_cache[(parsed_message.chat.id, parsed_message.id)] = parsed_message
 
             if message.reply_to and message.reply_to.forum_topic:
+                parsed_message.topic_message = True
                 if message.reply_to.reply_to_top_id:
                     parsed_message.message_thread_id = message.reply_to.reply_to_top_id
                 else:
@@ -929,7 +1050,7 @@ class Message(Object, Update):
             venue = None
             game = None
             giveaway = None
-            giveaway_result = None
+            giveaway_winners = None
             invoice = None
             story = None
             audio = None
@@ -970,8 +1091,8 @@ class Message(Object, Update):
                     giveaway = types.Giveaway._parse(client, media, chats)
                     media_type = enums.MessageMediaType.GIVEAWAY
                 elif isinstance(media, raw.types.MessageMediaGiveawayResults):
-                    giveaway_result = await types.GiveawayResult._parse(client, media, users, chats)
-                    media_type = enums.MessageMediaType.GIVEAWAY_RESULT
+                    giveaway_winners = await types.GiveawayWinners._parse(client, media, users, chats)
+                    media_type = enums.MessageMediaType.GIVEAWAY_WINNERS
                 elif isinstance(media, raw.types.MessageMediaInvoice):
                     invoice = types.Invoice._parse(client, media)
                     media_type = enums.MessageMediaType.INVOICE
@@ -1099,6 +1220,10 @@ class Message(Object, Update):
                 chat=types.Chat._parse(client, message, users, chats, is_chat=True),
                 from_user=from_user,
                 sender_chat=sender_chat,
+                sender_business_bot=types.User._parse(
+                    client,
+                    users.get(getattr(message, "via_business_bot_id", None))
+                ),
                 text=(
                     Str(message.message).init(entities) or None
                     if media is None or web_page is not None
@@ -1133,7 +1258,7 @@ class Message(Object, Update):
                 from_scheduled=message.from_scheduled,
                 media=media_type,
                 paid_media=paid_media,
-                show_above_text=getattr(message, "invert_media", None),
+                show_caption_above_media=getattr(message, "invert_media", None),
                 edit_date=utils.timestamp_to_datetime(message.edit_date),
                 edit_hidden=message.edit_hide,
                 media_group_id=message.grouped_id,
@@ -1146,10 +1271,11 @@ class Message(Object, Update):
                 animation=animation,
                 game=game,
                 giveaway=giveaway,
-                giveaway_result=giveaway_result,
+                giveaway_winners=giveaway_winners,
                 invoice=invoice,
                 story=story,
                 video=video,
+                video_processing_pending=getattr(message, "video_processing_pending", None),
                 alternative_videos=types.List(alternative_videos) if alternative_videos else None,
                 video_note=video_note,
                 sticker=sticker,
@@ -1165,6 +1291,7 @@ class Message(Object, Update):
                 business_connection_id=business_connection_id,
                 reply_markup=reply_markup,
                 reactions=reactions,
+                from_offline=getattr(message, "offline", None),
                 raw=message,
                 client=client
             )
@@ -1172,12 +1299,26 @@ class Message(Object, Update):
             if any((isinstance(entity, raw.types.MessageEntityBlockquote) for entity in message.entities)):
                 parsed_message.quote = True
 
+            if (
+                forward_header and
+                forward_header.saved_from_peer and
+                forward_header.saved_from_msg_id
+            ):
+                saved_from_peer_id = utils.get_raw_peer_id(forward_header.saved_from_peer)
+                saved_from_peer_chat = chats.get(saved_from_peer_id)
+                if (
+                    isinstance(saved_from_peer_chat, raw.types.Channel) and
+                    not saved_from_peer_chat.megagroup
+                ):
+                    parsed_message.automatic_forward = True
+
             if message.reply_to:
                 if isinstance(message.reply_to, raw.types.MessageReplyHeader):
                     parsed_message.reply_to_message_id = getattr(message.reply_to, "reply_to_msg_id", None)
                     parsed_message.reply_to_top_message_id = getattr(message.reply_to, "reply_to_top_id", None)
 
                     if message.reply_to.forum_topic:
+                        parsed_message.topic_message = True
                         if message.reply_to.reply_to_top_id:
                             parsed_message.message_thread_id = message.reply_to.reply_to_top_id
                         else:
@@ -1305,13 +1446,14 @@ class Message(Object, Update):
         disable_notification: bool = None,
         message_thread_id: int = None,
         effect_id: int = None,
-        show_above_text: bool = None,
+        show_caption_above_media: bool = None,
         reply_to_message_id: int = None,
         quote_text: str = None,
         quote_entities: List["types.MessageEntity"] = None,
         schedule_date: datetime = None,
         protect_content: bool = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup=None
     ) -> "Message":
         """Bound method *reply_text* of :obj:`~pyrogram.types.Message`.
@@ -1364,9 +1506,8 @@ class Message(Object, Update):
                 Unique identifier of the message effect.
                 For private chats only.
 
-            show_above_text (``bool``, *optional*):
-                If True, link preview will be shown above the message text.
-                Otherwise, the link preview will be shown below the message text.
+            show_caption_above_media (``bool``, *optional*):
+                Pass True, if the caption must be shown above the message media.
 
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
@@ -1385,6 +1526,12 @@ class Message(Object, Update):
 
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
+
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
 
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
@@ -1417,13 +1564,14 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             effect_id=effect_id,
-            show_above_text=show_above_text,
+            show_caption_above_media=show_caption_above_media,
             reply_to_message_id=reply_to_message_id,
             quote_text=quote_text,
             quote_entities=quote_entities,
             schedule_date=schedule_date,
             protect_content=protect_content,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup
         )
 
@@ -1443,6 +1591,7 @@ class Message(Object, Update):
         thumb: str = None,
         disable_notification: bool = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -1537,6 +1686,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -1601,6 +1756,7 @@ class Message(Object, Update):
             quote_text=quote_text,
             quote_entities=quote_entities,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -1624,6 +1780,7 @@ class Message(Object, Update):
         quote_text: str = None,
         quote_entities: List["types.MessageEntity"] = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -1710,6 +1867,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -1773,6 +1936,7 @@ class Message(Object, Update):
             quote_text=quote_text,
             quote_entities=quote_entities,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -1791,6 +1955,7 @@ class Message(Object, Update):
         quote_text: str = None,
         quote_entities: List["types.MessageEntity"] = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -1854,6 +2019,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -1888,6 +2059,7 @@ class Message(Object, Update):
             quote_text=quote_text,
             quote_entities=quote_entities,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup
         )
 
@@ -1954,6 +2126,7 @@ class Message(Object, Update):
         parse_mode: Optional["enums.ParseMode"] = None,
         quote_entities: List["types.MessageEntity"] = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -2024,6 +2197,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -2060,6 +2239,7 @@ class Message(Object, Update):
             parse_mode=parse_mode,
             quote_entities=quote_entities,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup
         )
 
@@ -2082,6 +2262,7 @@ class Message(Object, Update):
         schedule_date: datetime = None,
         protect_content: bool = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -2178,6 +2359,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -2242,6 +2429,7 @@ class Message(Object, Update):
             schedule_date=schedule_date,
             protect_content=protect_content,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -2255,7 +2443,7 @@ class Message(Object, Update):
         message_thread_id: int = None,
         effect_id: int = None,
         reply_to_message_id: int = None,
-        business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -2303,6 +2491,12 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup`, *optional*):
                 An object for an inline keyboard. If empty, one ‘Play game_title’ button will be shown automatically.
                 If not empty, the first button must launch the game.
@@ -2329,6 +2523,7 @@ class Message(Object, Update):
             message_thread_id=message_thread_id,
             effect_id=effect_id,
             reply_to_message_id=reply_to_message_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup
         )
 
@@ -2433,6 +2628,7 @@ class Message(Object, Update):
         quote_text: str = None,
         quote_entities: List["types.MessageEntity"] = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -2493,6 +2689,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -2526,6 +2728,7 @@ class Message(Object, Update):
             quote_text=quote_text,
             quote_entities=quote_entities,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup
         )
 
@@ -2540,6 +2743,7 @@ class Message(Object, Update):
         quote_text: str = None,
         parse_mode: Optional["enums.ParseMode"] = None,
         quote_entities: List["types.MessageEntity"] = None,
+        allow_paid_broadcast: bool = None,
         business_connection_id: str = None
     ) -> List["types.Message"]:
         """Bound method *reply_media_group* of :obj:`~pyrogram.types.Message`.
@@ -2594,6 +2798,12 @@ class Message(Object, Update):
             quote_entities (List of :obj:`~pyrogram.types.MessageEntity`):
                 List of special entities that appear in quote text, which can be specified instead of *parse_mode*.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
@@ -2626,6 +2836,7 @@ class Message(Object, Update):
             quote_text=quote_text,
             parse_mode=parse_mode,
             quote_entities=quote_entities,
+            allow_paid_broadcast=allow_paid_broadcast,
             business_connection_id=business_connection_id
         )
 
@@ -2646,6 +2857,7 @@ class Message(Object, Update):
         quote_entities: List["types.MessageEntity"] = None,
         view_once: bool = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -2729,6 +2941,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -2791,6 +3009,7 @@ class Message(Object, Update):
             quote_entities=quote_entities,
             view_once=view_once,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -2825,6 +3044,7 @@ class Message(Object, Update):
         schedule_date: datetime = None,
         business_connection_id: str = None,
         options_parse_mode: List["types.MessageEntity"] = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -2950,6 +3170,12 @@ class Message(Object, Update):
                 By default, texts are parsed using both Markdown and HTML styles.
                 You can combine both syntaxes together.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -3000,6 +3226,7 @@ class Message(Object, Update):
             schedule_date=schedule_date,
             business_connection_id=business_connection_id,
             options_parse_mode=options_parse_mode,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup
         )
 
@@ -3015,6 +3242,7 @@ class Message(Object, Update):
         parse_mode: Optional["enums.ParseMode"] = None,
         quote_entities: List["types.MessageEntity"] = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -3080,6 +3308,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -3137,6 +3371,7 @@ class Message(Object, Update):
             parse_mode=parse_mode,
             quote_entities=quote_entities,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -3159,6 +3394,7 @@ class Message(Object, Update):
         parse_mode: Optional["enums.ParseMode"] = None,
         quote_entities: List["types.MessageEntity"] = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -3238,6 +3474,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -3276,6 +3518,7 @@ class Message(Object, Update):
             parse_mode=parse_mode,
             quote_entities=quote_entities,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup
         )
 
@@ -3301,6 +3544,7 @@ class Message(Object, Update):
         quote_entities: List["types.MessageEntity"] = None,
         no_sound: bool = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -3402,6 +3646,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -3469,6 +3719,7 @@ class Message(Object, Update):
             quote_entities=quote_entities,
             no_sound=no_sound,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -3491,6 +3742,7 @@ class Message(Object, Update):
         protect_content: bool = None,
         view_once: bool = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -3575,6 +3827,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -3637,6 +3895,7 @@ class Message(Object, Update):
             protect_content=protect_content,
             view_once=view_once,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -3658,6 +3917,7 @@ class Message(Object, Update):
         quote_entities: List["types.MessageEntity"] = None,
         view_once: bool = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -3736,6 +3996,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -3797,6 +4063,7 @@ class Message(Object, Update):
             quote_entities=quote_entities,
             view_once=view_once,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -3814,7 +4081,7 @@ class Message(Object, Update):
         disable_notification: bool = None,
         message_thread_id: int = None,
         effect_id: int = None,
-        show_above_text: bool = None,
+        show_caption_above_media: bool = None,
         reply_to_message_id: int = None,
         reply_to_chat_id: Union[int, str] = None,
         reply_to_story_id: int = None,
@@ -3824,6 +4091,7 @@ class Message(Object, Update):
         schedule_date: datetime = None,
         protect_content: bool = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -3870,9 +4138,8 @@ class Message(Object, Update):
                 If True, media in the link preview will be smaller.
                 Ignored if the URL isn't explicitly specified or media size change isn't supported for the preview.
 
-            show_above_text (``bool``, *optional*):
-                If True, link preview will be shown above the message text.
-                Otherwise, the link preview will be shown below the message text.
+            show_caption_above_media (``bool``, *optional*):
+                Pass True, if the caption must be shown above the message media.
 
             disable_notification (``bool``, *optional*):
                 Sends the message silently.
@@ -3913,6 +4180,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -3943,7 +4216,7 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             effect_id=effect_id,
-            show_above_text=show_above_text,
+            show_caption_above_media=show_caption_above_media,
             reply_to_message_id=reply_to_message_id,
             reply_to_chat_id=reply_to_chat_id,
             reply_to_story_id=reply_to_story_id,
@@ -3953,6 +4226,7 @@ class Message(Object, Update):
             schedule_date=schedule_date,
             protect_content=protect_content,
             business_connection_id=business_connection_id,
+            allow_paid_broadcast=allow_paid_broadcast,
             reply_markup=reply_markup
         )
 
@@ -3962,7 +4236,7 @@ class Message(Object, Update):
         parse_mode: Optional["enums.ParseMode"] = None,
         entities: List["types.MessageEntity"] = None,
         disable_web_page_preview: bool = None,
-        show_above_text: bool = None,
+        show_caption_above_media: bool = None,
         reply_markup: "types.InlineKeyboardMarkup" = None
     ) -> "Message":
         """Bound method *edit_text* of :obj:`~pyrogram.types.Message`.
@@ -3998,9 +4272,8 @@ class Message(Object, Update):
             disable_web_page_preview (``bool``, *optional*):
                 Disables link previews for links in this message.
 
-            show_above_text (``bool``, *optional*):
-                If True, link preview will be shown above the message text.
-                Otherwise, the link preview will be shown below the message text.
+            show_caption_above_media (``bool``, *optional*):
+                Pass True, if the caption must be shown above the message media.
 
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup`, *optional*):
                 An InlineKeyboardMarkup object.
@@ -4018,7 +4291,7 @@ class Message(Object, Update):
             parse_mode=parse_mode,
             entities=entities,
             disable_web_page_preview=disable_web_page_preview,
-            show_above_text=show_above_text,
+            show_caption_above_media=show_caption_above_media,
             reply_markup=reply_markup
         )
 
@@ -4161,7 +4434,8 @@ class Message(Object, Update):
         disable_notification: bool = None,
         hide_sender_name: bool = None,
         hide_captions: bool = None,
-        schedule_date: datetime = None
+        schedule_date: datetime = None,
+        allow_paid_broadcast: bool = None
     ) -> Union["types.Message", List["types.Message"]]:
         """Bound method *forward* of :obj:`~pyrogram.types.Message`.
 
@@ -4203,6 +4477,12 @@ class Message(Object, Update):
             hide_captions (``bool``, *optional*):
                 If True, the original media captions will be removed.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
         Returns:
             On success, the forwarded Message is returned.
 
@@ -4217,7 +4497,8 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             schedule_date=schedule_date,
             hide_sender_name=hide_sender_name,
-            hide_captions=hide_captions
+            hide_captions=hide_captions,
+            allow_paid_broadcast=allow_paid_broadcast
         )
 
     async def copy(
@@ -4236,6 +4517,7 @@ class Message(Object, Update):
         protect_content: bool = None,
         has_spoiler: bool = None,
         business_connection_id: str = None,
+        allow_paid_broadcast: bool = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -4307,6 +4589,12 @@ class Message(Object, Update):
             business_connection_id (``str``, *optional*):
                 Unique identifier of the business connection on behalf of which the message will be sent.
 
+            allow_paid_broadcast (``bool``, *optional*):
+                If True, you will be allowed to send up to 1000 messages per second.
+                Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
+                The relevant Stars will be withdrawn from the bot's balance.
+                For bots only.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -4343,6 +4631,7 @@ class Message(Object, Update):
                 schedule_date=schedule_date,
                 protect_content=protect_content,
                 business_connection_id=business_connection_id,
+                allow_paid_broadcast=allow_paid_broadcast,
                 reply_markup=self.reply_markup if reply_markup is object else reply_markup
             )
         elif self.media:
@@ -4359,6 +4648,7 @@ class Message(Object, Update):
                 protect_content=protect_content,
                 has_spoiler=self.has_media_spoiler if has_spoiler is None else has_spoiler,
                 business_connection_id=business_connection_id,
+                allow_paid_broadcast=allow_paid_broadcast,
                 reply_markup=self.reply_markup if reply_markup is object else reply_markup
             )
 
@@ -4388,6 +4678,7 @@ class Message(Object, Update):
                     disable_notification=disable_notification,
                     message_thread_id=message_thread_id,
                     schedule_date=schedule_date,
+                    allow_paid_broadcast=allow_paid_broadcast,
                     business_connection_id=business_connection_id
                 )
             elif self.location:
@@ -4398,6 +4689,7 @@ class Message(Object, Update):
                     disable_notification=disable_notification,
                     message_thread_id=message_thread_id,
                     schedule_date=schedule_date,
+                    allow_paid_broadcast=allow_paid_broadcast,
                     business_connection_id=business_connection_id
                 )
             elif self.venue:
@@ -4412,6 +4704,7 @@ class Message(Object, Update):
                     disable_notification=disable_notification,
                     message_thread_id=message_thread_id,
                     schedule_date=schedule_date,
+                    allow_paid_broadcast=allow_paid_broadcast,
                     business_connection_id=business_connection_id
                 )
             elif self.poll:
@@ -4422,6 +4715,7 @@ class Message(Object, Update):
                     disable_notification=disable_notification,
                     message_thread_id=message_thread_id,
                     schedule_date=schedule_date,
+                    allow_paid_broadcast=allow_paid_broadcast,
                     business_connection_id=business_connection_id
                 )
             elif self.game:
@@ -4429,6 +4723,7 @@ class Message(Object, Update):
                     chat_id,
                     game_short_name=self.game.short_name,
                     disable_notification=disable_notification,
+                    allow_paid_broadcast=allow_paid_broadcast,
                     message_thread_id=message_thread_id
                 )
             else:
