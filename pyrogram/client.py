@@ -1200,12 +1200,13 @@ class Client(Methods):
                         raise e
                     finally:
                         await cdn_session.stop()
-            except pyrogram.StopTransmission:
-                raise
-            except (FloodWait, FloodPremiumWait):
-                raise
+            # except pyrogram.StopTransmission:
+            #     raise
+            # except (FloodWait, FloodPremiumWait):
+            #     raise
             except Exception as e:
-                log.exception(e)
+                # log.exception(e)
+                raise
 
     def guess_mime_type(self, filename: str) -> Optional[str]:
         return self.mimetypes.guess_type(filename)[0]
