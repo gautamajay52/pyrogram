@@ -16,21 +16,21 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import List, Union, Iterable
+import logging
+from typing import Union
 
 import pyrogram
 from pyrogram import raw
-from pyrogram import types
+
+log = logging.getLogger(__name__)
 
 
-class PinStories:
-    async def pin_stories(
+class GetUserStarGiftsCount:
+    async def get_user_star_gifts_count(
         self: "pyrogram.Client",
-        chat_id: Union[int, str],
-        stories_ids: Union[int, Iterable[int]],
-        pinned: bool = False,
-    ) -> List[int]:
-        """Pin one or more stories in a chat by using stories identifiers.
+        chat_id: Union[int, str]
+    ) -> int:
+        """Get the total count of star gifts of specified user.
 
         .. include:: /_includes/usable-by/users.rst
 
@@ -38,32 +38,27 @@ class PinStories:
             chat_id (``int`` | ``str``):
                 Unique identifier (int) or username (str) of the target chat.
                 For your personal cloud (Saved Messages) you can simply use "me" or "self".
-
-            stories_ids (``int`` | Iterable of ``int``, *optional*):
-                List of unique identifiers of the target stories.
-
-            pinned (``bool``):
-                If set to ``True``, the stories will be pinned.
+                For a contact that exists in your Telegram address book you can use his phone number (str).
 
         Returns:
-            List of ``int``: List of pinned stories IDs
+            ``int``: On success, the star gifts count is returned.
 
         Example:
             .. code-block:: python
 
-                # Pin a single story
-                await app.pin_stories(chat_id, 123456789, True)
-
+                await app.get_user_star_gifts_count(chat_id)
         """
-        is_iterable = not isinstance(stories_ids, int)
-        stories_ids = list(stories_ids) if is_iterable else [stories_ids]
+        peer = await self.resolve_peer(chat_id)
+
+        if not isinstance(peer, (raw.types.InputPeerUser, raw.types.InputPeerSelf)):
+            raise ValueError("chat_id must belong to a user.")
 
         r = await self.invoke(
-            raw.functions.stories.TogglePinned(
-                peer=await self.resolve_peer(chat_id),
-                id=stories_ids,
-                pinned=pinned
+            raw.functions.payments.GetUserStarGifts(
+                user_id=peer,
+                offset="",
+                limit=1
             )
         )
 
-        return types.List(r)
+        return r.count

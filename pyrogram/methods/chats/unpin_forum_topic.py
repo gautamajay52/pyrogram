@@ -16,42 +16,42 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Union
-
 import pyrogram
 from pyrogram import raw
+from typing import Union
 
 
-class HideStories:
-    async def hide_stories(
+class UnpinForumTopic:
+    async def unpin_forum_topic(
         self: "pyrogram.Client",
         chat_id: Union[int, str],
-        hidden: bool = None
+        topic_id: int
     ) -> bool:
-        """Toggle peer stories hidden
+        """Unpin a forum topic.
 
         .. include:: /_includes/usable-by/users.rst
 
         Parameters:
             chat_id (``int`` | ``str``):
                 Unique identifier (int) or username (str) of the target chat.
-                For your personal cloud (Saved Messages) you can simply use "me" or "self".
-                For a contact that exists in your Telegram address book you can use his phone number (str).
+
+            topic_id (``int``):
+                Unique identifier (int) of the target forum topic.
 
         Returns:
-            ``str``: On success, a bool is returned.
+            ``bool``: On success, True is returned.
 
         Example:
             .. code-block:: python
 
-                # Export a story link
-                link = app.hide_stories("me")
+                await app.unpin_forum_topic(chat_id, topic_id)
         """
-        r = await self.invoke(
-            raw.functions.stories.TogglePeerStoriesHidden(
-                peer=await self.resolve_peer(chat_id),
-                hidden=hidden
+        await self.invoke(
+            raw.functions.channels.UpdatePinnedForumTopic(
+                channel=await self.resolve_peer(chat_id),
+                topic_id=topic_id,
+                pinned=False
             )
         )
 
-        return r
+        return True
