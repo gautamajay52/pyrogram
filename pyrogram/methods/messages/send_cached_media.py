@@ -43,9 +43,11 @@ class SendCachedMedia:
         schedule_date: datetime = None,
         protect_content: bool = None,
         has_spoiler: bool = None,
+        effect_id: int = None,
         show_caption_above_media: bool = None,
         business_connection_id: str = None,
         allow_paid_broadcast: bool = None,
+        paid_message_star_count: int = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -113,6 +115,10 @@ class SendCachedMedia:
             has_spoiler (``bool``, *optional*):
                 True, if the message media is covered by a spoiler animation.
 
+            effect_id (``int``, *optional*):
+                Unique identifier of the message effect.
+                For private chats only.
+
             show_caption_above_media (``bool``, *optional*):
                 Pass True, if the caption must be shown above the message media.
 
@@ -124,6 +130,9 @@ class SendCachedMedia:
                 Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
                 The relevant Stars will be withdrawn from the bot's balance.
                 For bots only.
+
+            paid_message_star_count (``int``, *optional*):
+                The number of Telegram Stars the user agreed to pay to send the messages.
 
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
@@ -160,6 +169,8 @@ class SendCachedMedia:
                 noforwards=protect_content,
                 allow_paid_floodskip=allow_paid_broadcast,
                 reply_markup=await reply_markup.write(self) if reply_markup else None,
+                effect=effect_id,
+                allow_paid_stars=paid_message_star_count,
                 **await utils.parse_text_entities(self, caption, parse_mode, caption_entities)
             ),
             business_connection_id=business_connection_id

@@ -16,20 +16,25 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Union
+from typing import AsyncGenerator, Optional, Union
 
 import pyrogram
 from pyrogram import raw, types
 
 
-class GetUserStarGifts:
-    async def get_user_star_gifts(
+class GetStoryViews:
+    async def get_story_views(
         self: "pyrogram.Client",
         chat_id: Union[int, str],
+        story_id: int,
+        offset: str = "",
         limit: int = 0,
-        offset: str = ""
-    ):
-        """Get user star gifts.
+        contacts_only: Optional[bool] = None,
+        reactions_first: Optional[bool] = None,
+        forwards_first: Optional[bool] = None,
+        query: Optional[str] = None
+    ) -> AsyncGenerator["types.StoryView", None]:
+        """Obtain the list of users that have viewed a specific story we posted.
 
         .. include:: /_includes/usable-by/users.rst
 
@@ -39,25 +44,38 @@ class GetUserStarGifts:
                 For your personal cloud (Saved Messages) you can simply use "me" or "self".
                 For a contact that exists in your Telegram address book you can use his phone number (str).
 
+            story_id (``int``):
+                Pass a story identifier to get the story views.
+
             offset (``str``, *optional*):
                 Offset of the results to be returned.
 
             limit (``int``, *optional*):
-                Maximum amount of star gifts to be returned.
+                Maximum number of views to return.
+
+            contacts_only (``bool``, *optional*):
+                Only Get views made by your contacts, Defaults to False.
+
+            reactions_first (``bool``, *optional*):
+                If True, return reactions first, Defaults to False.
+
+            forwards_first (``bool``, *optional*):
+                If True, return forwards first, Defaults to False.
+
+            query (``str``, *optional*):
+                Search for specific users.
 
         Returns:
-            ``Generator``: A generator yielding :obj:`~pyrogram.types.StarGift` objects.
+            ``Generator``: A generator yielding :obj:`~pyrogram.types.StoryView` objects.
 
         Example:
             .. code-block:: python
 
-                async for gift in app.get_user_star_gifts(chat_id):
-                    print(gift)
+                # Get views
+                async for view in app.get_story_views(chat_id, story_id):
+                    print(view)
         """
         peer = await self.resolve_peer(chat_id)
-
-        if not isinstance(peer, (raw.types.InputPeerUser, raw.types.InputPeerSelf)):
-            raise ValueError("chat_id must belong to a user.")
 
         current = 0
         total = abs(limit) or (1 << 31) - 1
@@ -65,26 +83,31 @@ class GetUserStarGifts:
 
         while True:
             r = await self.invoke(
-                raw.functions.payments.GetUserStarGifts(
-                    user_id=peer,
+                raw.functions.stories.GetStoryViewsList(
+                    peer=peer,
+                    id=story_id,
                     offset=offset,
-                    limit=limit
-                ),
-                sleep_threshold=60
+                    limit=limit,
+                    just_contacts=contacts_only,
+                    reactions_first=reactions_first,
+                    forwards_first=forwards_first,
+                    q=query
+                )
             )
 
-            users = {u.id: u for u in r.users}
+            users = {i.id: i for i in r.users}
+            chats = {i.id: i for i in r.chats}
 
-            user_star_gifts = [
-                await types.StarGift._parse_user_star_gift(self, gift, users)
-                for gift in r.gifts
+            views = [
+                types.StoryView._parse(self, i, users)
+                for i in r.views
             ]
 
-            if not user_star_gifts:
+            if not views:
                 return
 
-            for gift in user_star_gifts:
-                yield gift
+            for view in views:
+                yield view
 
                 current += 1
 

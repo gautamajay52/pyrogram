@@ -30,13 +30,17 @@ from .message_media_type import MessageMediaType
 from .message_service_type import MessageServiceType
 from .messages_filter import MessagesFilter
 from .next_code_type import NextCodeType
+from .paid_reaction_privacy import PaidReactionPrivacy
 from .parse_mode import ParseMode
 from .phone_call_discard_reason import PhoneCallDiscardReason
 from .poll_type import PollType
 from .privacy_key import PrivacyKey
+from .privacy_rule_type import PrivacyRuleType
 from .profile_color import ProfileColor
 from .reply_color import ReplyColor
 from .sent_code_type import SentCodeType
+from .gift_attribute_type import GiftAttributeType
+from .media_area_type import MediaAreaType
 from .stories_privacy_rules import StoriesPrivacyRules
 from .user_status import UserStatus
 
@@ -55,13 +59,17 @@ __all__ = [
     'MessageServiceType',
     'MessagesFilter',
     'NextCodeType',
+    'PaidReactionPrivacy',
     'ParseMode',
     'PhoneCallDiscardReason',
     'PollType',
     'PrivacyKey',
+    'PrivacyRuleType',
     'ProfileColor',
     'ReplyColor',
     'SentCodeType',
+    'GiftAttributeType',
+    'MediaAreaType',
     'StoriesPrivacyRules',
     'UserStatus'
 ]

@@ -16,20 +16,26 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-
-from typing import Union
+import logging
+from typing import Optional, Union
 
 import pyrogram
 from pyrogram import raw
 
+log = logging.getLogger(__name__)
 
-class ConvertStarGift:
-    async def convert_star_gift(
+
+class GetChatGiftsCount:
+    async def get_chat_gifts_count(
         self: "pyrogram.Client",
         chat_id: Union[int, str],
-        message_id: int
-    ) -> bool:
-        """Convert star gift to stars.
+        exclude_unsaved: Optional[bool] = None,
+        exclude_saved: Optional[bool] = None,
+        exclude_unlimited: Optional[bool] = None,
+        exclude_limited: Optional[bool] = None,
+        exclude_upgraded: Optional[bool] = None
+    ) -> int:
+        """Get the total count of owned gifts of specified chat.
 
         .. include:: /_includes/usable-by/users.rst
 
@@ -39,28 +45,42 @@ class ConvertStarGift:
                 For your personal cloud (Saved Messages) you can simply use "me" or "self".
                 For a contact that exists in your Telegram address book you can use his phone number (str).
 
-            message_id (``int``):
-                Unique message identifier of star gift.
+            exclude_unsaved (``bool``, *optional*):
+                Exclude unsaved star gifts.
+
+            exclude_saved (``bool``, *optional*):
+                Exclude saved star gifts.
+
+            exclude_unlimited (``bool``, *optional*):
+                Exclude unlimited star gifts.
+
+            exclude_limited (``bool``, *optional*):
+                Exclude limited star gifts.
+
+            exclude_upgraded (``bool``, *optional*):
+                Exclude upgraded star gifts.
 
         Returns:
-            ``bool``: On success, True is returned.
+            ``int``: On success, the star gifts count is returned.
 
         Example:
             .. code-block:: python
 
-                # Convert gift
-                app.convert_star_gift(chat_id=chat_id, message_id=123)
+                await app.get_chat_gifts_count(chat_id)
         """
         peer = await self.resolve_peer(chat_id)
 
-        if not isinstance(peer, (raw.types.InputPeerUser, raw.types.InputPeerSelf)):
-            raise ValueError("chat_id must belong to a user.")
-
         r = await self.invoke(
-            raw.functions.payments.ConvertStarGift(
-                user_id=peer,
-                msg_id=message_id
+            raw.functions.payments.GetSavedStarGifts(
+                peer=peer,
+                offset="",
+                exclude_unsaved=exclude_unsaved,
+                exclude_saved=exclude_saved,
+                exclude_unlimited=exclude_unlimited,
+                exclude_limited=exclude_limited,
+                exclude_unique=exclude_upgraded,
+                limit=1
             )
         )
 
-        return r
+        return r.count

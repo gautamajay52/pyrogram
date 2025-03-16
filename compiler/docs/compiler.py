@@ -20,6 +20,8 @@ import ast
 import os
 import re
 import shutil
+from dataclasses import dataclass
+from typing import Literal
 
 HOME = "compiler/docs"
 DESTINATION = "docs/source/telegram"
@@ -39,6 +41,64 @@ def snek(s: str):
     return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s).lower()
 
 
+def _extract_union_name(node: ast.AST) -> str | None:
+    """Extract the name of a variable that is assigned a Union type.
+
+    :param node: The AST node to extract the variable name from.
+    :return: The variable name if it is assigned a Union type, otherwise None.
+
+    >>> import ast
+    >>> parsed_ast = ast.parse("User = Union[raw.types.UserEmpty]")
+    >>> _extract_union_name(parsed_ast.body[0])
+    'User'
+    """
+
+    # Check if the assigned value is a Union type
+    if isinstance(node, ast.Assign) and isinstance(node.value, ast.Subscript):
+        if isinstance(node.value.value, ast.Name) and node.value.value.id == "Union":
+            # Extract variable name
+            if isinstance(node.targets[0], ast.Name):
+                return node.targets[0].id  # Variable name
+
+
+def _extract_class_name(node: ast.AST) -> str | None:
+    """Extract the name of a class.
+
+    :param node: The AST node to extract the class name from.
+    :return: The class name if it is a class, otherwise None.
+
+    >>> import ast
+    >>> parsed_ast = ast.parse("class User: pass")
+    >>> _extract_class_name(parsed_ast.body[0])
+    'User'
+    """
+
+    if isinstance(node, ast.ClassDef):
+        return node.name  # Class name
+
+
+NodeType = Literal["class", "union"]
+
+
+@dataclass
+class NodeInfo:
+    name: str
+    type: NodeType
+
+
+def parse_node_info(node: ast.AST) -> NodeInfo | None:
+    """Parse an AST node and extract the class or variable name."""
+    class_name = _extract_class_name(node)
+    if class_name:
+        return NodeInfo(name=class_name, type="class")
+
+    union_name = _extract_union_name(node)
+    if union_name:
+        return NodeInfo(name=union_name, type="union")
+
+    return None
+
+
 def generate(source_path, base):
     all_entities = {}
 
@@ -54,13 +114,13 @@ def generate(source_path, base):
                     p = ast.parse(f.read())
 
                 for node in ast.walk(p):
-                    if isinstance(node, ast.ClassDef):
-                        name = node.name
+                    node_info = parse_node_info(node)
+                    if node_info:
                         break
                 else:
                     continue
 
-                full_path = os.path.basename(path) + "/" + snek(name).replace("_", "-") + ".rst"
+                full_path = os.path.basename(path) + "/" + snek(node_info.name).replace("_", "-") + ".rst"
 
                 if level:
                     full_path = base + "/" + full_path
@@ -69,25 +129,42 @@ def generate(source_path, base):
                 if namespace in ["base", "types", "functions"]:
                     namespace = ""
 
-                full_name = f"{(namespace + '.') if namespace else ''}{name}"
+                full_name = f"{(namespace + '.') if namespace else ''}{node_info.name}"
 
                 os.makedirs(os.path.dirname(DESTINATION + "/" + full_path), exist_ok=True)
 
                 with open(DESTINATION + "/" + full_path, "w", encoding="utf-8") as f:
+                    title_markup = "=" * len(full_name)
+                    full_class_path = "pyrogram.raw.{}".format(
+                        ".".join(full_path.split("/")[:-1]) + "." + node_info.name
+                    )
+
+                    if node_info.type == "class":
+                        directive_type = "autoclass"
+                        directive_suffix = "()"
+                        directive_option = "members"
+                    elif node_info.type == "union":
+                        directive_type = "autodata"
+                        directive_suffix = ""
+                        directive_option = "annotation"
+                    else:
+                        raise ValueError(f"Unknown node type: `{node_info.type}`")
+
                     f.write(
                         page_template.format(
                             title=full_name,
-                            title_markup="=" * len(full_name),
-                            full_class_path="pyrogram.raw.{}".format(
-                                ".".join(full_path.split("/")[:-1]) + "." + name
-                            )
+                            title_markup=title_markup,
+                            directive_type=directive_type,
+                            full_class_path=full_class_path,
+                            directive_suffix=directive_suffix,
+                            directive_option=directive_option,
                         )
                     )
 
                 if last not in all_entities:
                     all_entities[last] = []
 
-                all_entities[last].append(name)
+                all_entities[last].append(node_info.name)
 
     build(source_path)
 
@@ -208,6 +285,7 @@ def pyrogram_api():
             delete_chat_history
             send_paid_media
             send_paid_reaction
+            add_to_gifs
         """,
         chats="""
         Chats
@@ -271,6 +349,8 @@ def pyrogram_api():
             toggle_folder_tags
             set_chat_ttl
             get_personal_channels
+            get_chat_settings
+            transfer_chat_ownership
         """,
         users="""
         Users
@@ -325,15 +405,19 @@ def pyrogram_api():
         Payments
             apply_gift_code
             check_gift_code
-            convert_star_gift
+            convert_gift
             get_payment_form
-            get_star_gifts
-            get_user_star_gifts_count
-            get_user_star_gifts
-            hide_star_gift
+            get_available_gifts
+            get_upgraded_gift
+            get_chat_gifts_count
+            get_chat_gifts
+            hide_gift
             send_payment_form
-            send_star_gift
-            show_star_gift
+            send_gift
+            show_gift
+            transfer_gift
+            upgrade_gift
+            get_stars_balance
         """,
         phone="""
         Phone
@@ -374,6 +458,7 @@ def pyrogram_api():
             get_bot_info_short_description
             set_bot_name
             get_bot_name
+            get_owned_bots
         """,
         business="""
         Business
@@ -427,6 +512,8 @@ def pyrogram_api():
             unpin_chat_stories
             read_chat_stories
             send_story
+            enable_stealth_mode
+            get_story_views
         """,
         premium="""
         Premium
@@ -440,6 +527,8 @@ def pyrogram_api():
             set_account_ttl
             set_privacy
             get_privacy
+            set_global_privacy_settings
+            get_global_privacy_settings
         """
     )
 
@@ -483,7 +572,6 @@ def pyrogram_api():
         Users & Chats
             Birthday
             BusinessConnection
-            BusinessInfo
             BusinessIntro
             BusinessRecipients
             BusinessWeeklyOpen
@@ -510,6 +598,11 @@ def pyrogram_api():
             ChatColor
             FoundContacts
             PrivacyRule
+            StoriesStealthMode
+            BotVerification
+            ChatSettings
+            GlobalPrivacySettings
+            HistoryCleared
         """,
         messages_media="""
         Messages & Media
@@ -518,30 +611,36 @@ def pyrogram_api():
             MessageEntity
             Photo
             Thumbnail
+            StrippedThumbnail
             Audio
             AvailableEffect
             Document
+            FactCheck
             ForumTopic
             ForumTopicClosed
             ForumTopicCreated
             ForumTopicEdited
             ForumTopicReopened
+            GeneralForumTopicHidden
+            GeneralForumTopicUnhidden
             Animation
             Video
             Voice
             VideoNote
             Contact
             Location
+            MediaArea
             Venue
             Sticker
             Game
             WebPage
             Poll
+            ProximityAlertTriggered
             PollOption
             Dice
             Reaction
-            RefundedPayment
-            StarGift
+            RestrictionReason
+            Gift
             VideoChatScheduled
             VideoChatStarted
             VideoChatEnded
@@ -556,11 +655,13 @@ def pyrogram_api():
             BoostsStatus
             Giveaway
             GiveawayCreated
+            GiveawayPrizeStars
             GiveawayCompleted
             GiveawayWinners
             Invoice
             GiftCode
             CheckedGiftCode
+            RefundedPayment
             SuccessfulPayment
             PaidMediaInfo
             PaidMediaPreview
@@ -569,6 +670,12 @@ def pyrogram_api():
             ContactRegistered
             ScreenshotTaken
             WriteAccessAllowed
+            GiftAttribute
+            StoryView
+            GiftedPremium
+            ChatBackground
+            ChatTheme
+            GiftedStars
         """,
         bot_keyboards="""
         Bot keyboards
@@ -588,10 +695,9 @@ def pyrogram_api():
             MenuButtonWebApp
             MenuButtonDefault
             SentWebAppMessage
-            RequestChannelInfo
-            RequestChatInfo
-            RequestUserInfo
-            RequestPollInfo
+            KeyboardButtonRequestChat
+            KeyboardButtonRequestUsers
+            KeyboardButtonPollType
             OrderInfo
             PreCheckoutQuery
             ShippingAddress
@@ -601,6 +707,8 @@ def pyrogram_api():
             ChatBoostUpdated
             ShippingOption
             PurchasedPaidMedia
+            ChatShared
+            UsersShared
         """,
         bot_commands="""
         Bot commands
@@ -661,15 +769,19 @@ def pyrogram_api():
         """,
         input_privacy_rule="""
         InputPrivacyRule
+            InputPrivacyRule
             InputPrivacyRuleAllowAll
+            InputPrivacyRuleAllowBots
+            InputPrivacyRuleAllowChats
+            InputPrivacyRuleAllowCloseFriends
             InputPrivacyRuleAllowContacts
             InputPrivacyRuleAllowPremium
             InputPrivacyRuleAllowUsers
-            InputPrivacyRuleAllowChats
             InputPrivacyRuleDisallowAll
+            InputPrivacyRuleDisallowBots
+            InputPrivacyRuleDisallowChats
             InputPrivacyRuleDisallowContacts
             InputPrivacyRuleDisallowUsers
-            InputPrivacyRuleDisallowChats
         """
     )
 
@@ -709,6 +821,7 @@ def pyrogram_api():
             Message.download
             Message.forward
             Message.copy
+            Message.copy_media_group
             Message.pin
             Message.unpin
             Message.edit
@@ -838,10 +951,18 @@ def pyrogram_api():
         ActiveSession
             ActiveSession.reset
         """,
-        star_gift="""
-        StarGift
-            StarGift.show
-            StarGift.hide
+        gift="""
+        Gift
+            Gift.show
+            Gift.hide
+            Gift.convert
+            Gift.upgrade
+            Gift.transfer
+            Gift.wear
+        """,
+        animation="""
+        Animation
+            Animation.add_to_gifs
         """
     )
 
@@ -903,6 +1024,9 @@ def pyrogram_api():
             SentCodeType
             StoriesPrivacyRules
             UserStatus
+            GiftAttributeType
+            MediaAreaType
+            PrivacyRuleType
         """,
     )
 
