@@ -19,11 +19,18 @@
 from ..object import Object
 
 
-class HistoryCleared(Object):
-    """A service message about a cleared history in chat.
+class RequestPollInfo(Object):
+    """Contains information about a poll type.
 
-    Currently holds no information.
+    Parameters:
+        is_quiz (``bool``):
+            If True, the requested poll will be sent as quiz.
     """
 
-    def __init__(self):
+    def __init__(
+        self, *,
+        is_quiz: bool = None
+    ):
         super().__init__()
+
+        self.is_quiz = is_quiz

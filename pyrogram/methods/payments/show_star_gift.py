@@ -16,47 +16,52 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Optional, Union
+
+from typing import Union
 
 import pyrogram
 from pyrogram import raw
 
 
-class GetStarsBalance:
-    async def get_stars_balance(
+class ShowStarGift:
+    async def show_star_gift(
         self: "pyrogram.Client",
-        chat_id: Optional[Union[int, str]] = None,
-    ) -> int:
-        """Get the current Telegram Stars balance of the current account.
+        chat_id: Union[int, str],
+        message_id: int
+    ) -> bool:
+        """Display the star gift in your profile.
 
         .. include:: /_includes/usable-by/users.rst
 
         Parameters:
-            chat_id (``int`` | ``str``, *optional*):
+            chat_id (``int`` | ``str``):
                 Unique identifier (int) or username (str) of the target chat.
                 For your personal cloud (Saved Messages) you can simply use "me" or "self".
+                For a contact that exists in your Telegram address book you can use his phone number (str).
+
+            message_id (``int``):
+                Unique message identifier of star gift.
 
         Returns:
-            ``int``: On success, the current stars balance is returned.
+            ``bool``: On success, True is returned.
 
         Example:
             .. code-block:: python
 
-                # Get stars balance
-                app.get_stars_balance()
-
-                # Get stars balance of a bot
-                app.get_stars_balance(chat_id="pyrogrambot")
+                # Show gift
+                app.show_star_gift(chat_id=chat_id, message_id=123)
         """
-        if chat_id is None:
-            peer = raw.types.InputPeerSelf()
-        else:
-            peer = await self.resolve_peer(chat_id)
+        peer = await self.resolve_peer(chat_id)
+
+        if not isinstance(peer, (raw.types.InputPeerUser, raw.types.InputPeerSelf)):
+            raise ValueError("chat_id must belong to a user.")
 
         r = await self.invoke(
-            raw.functions.payments.GetStarsStatus(
-                peer=peer
+            raw.functions.payments.SaveStarGift(
+                user_id=peer,
+                msg_id=message_id,
+                unsave=False
             )
         )
 
-        return r.balance.amount
+        return r

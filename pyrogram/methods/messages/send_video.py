@@ -19,10 +19,13 @@
 import os
 import re
 from datetime import datetime
-from typing import BinaryIO, Callable, List, Optional, Union
+from typing import Union, BinaryIO, List, Optional, Callable
 
 import pyrogram
-from pyrogram import StopTransmission, enums, raw, types, utils
+from pyrogram import StopTransmission, enums
+from pyrogram import raw
+from pyrogram import types
+from pyrogram import utils
 from pyrogram.errors import FilePartMissing
 from pyrogram.file_id import FileType
 
@@ -40,15 +43,12 @@ class SendVideo:
         duration: int = 0,
         width: int = 0,
         height: int = 0,
-        video_start_timestamp: int = None,
-        video_cover: Union[str, BinaryIO] = None,
         thumb: Union[str, BinaryIO] = None,
         file_name: str = None,
         supports_streaming: bool = True,
         disable_notification: bool = None,
         message_thread_id: int = None,
         effect_id: int = None,
-        show_caption_above_media: bool = None,
         reply_to_message_id: int = None,
         reply_to_chat_id: Union[int, str] = None,
         reply_to_story_id: int = None,
@@ -60,7 +60,6 @@ class SendVideo:
         no_sound: bool = True,
         business_connection_id: str = None,
         allow_paid_broadcast: bool = None,
-        paid_message_star_count: int = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -71,11 +70,6 @@ class SendVideo:
         progress_args: tuple = ()
     ) -> Optional["types.Message"]:
         """Send video files.
-
-        .. note::
-
-            Starting December 1, 2024 messages with video that are sent, copied or forwarded to groups and channels with a sufficiently large audience can be automatically scheduled by the server until the respective video is reencoded.
-            Such messages will have ``scheduled`` property set and beware of using the correct message identifiers when using such :obj:`~pyrogram.types.Message` objects.
 
         .. include:: /_includes/usable-by/users-bots.rst
 
@@ -88,7 +82,7 @@ class SendVideo:
             video (``str`` | ``BinaryIO``):
                 Video to send.
                 Pass a file_id as string to send a video that exists on the Telegram servers,
-                pass a HTTP URL as a string for Telegram to get a video from the Internet,
+                pass an HTTP URL as a string for Telegram to get a video from the Internet,
                 pass a file path as string to upload a new video that exists on your local machine, or
                 pass a binary file-like object with its attribute ".name" set for in-memory uploads.
 
@@ -119,16 +113,6 @@ class SendVideo:
             height (``int``, *optional*):
                 Video height.
 
-            video_start_timestamp (``int``, *optional*):
-                Video startpoint, in seconds.
-
-            video_cover (``str`` | ``BinaryIO``, *optional*):
-                Video cover.
-                Pass a file_id as string to attach a photo that exists on the Telegram servers,
-                pass a HTTP URL as a string for Telegram to get a video from the Internet,
-                pass a file path as string to upload a new photo civer that exists on your local machine, or
-                pass a binary file-like object with its attribute ".name" set for in-memory uploads.
-
             thumb (``str`` | ``BinaryIO``, *optional*):
                 Thumbnail of the video sent.
                 The thumbnail should be in JPEG format and less than 200 KB in size.
@@ -154,9 +138,6 @@ class SendVideo:
             effect_id (``int``, *optional*):
                 Unique identifier of the message effect.
                 For private chats only.
-
-            show_caption_above_media (``bool``, *optional*):
-                Pass True, if the caption must be shown above the message media.
 
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
@@ -194,9 +175,6 @@ class SendVideo:
                 Ignoring broadcasting limits for a fee of 0.1 Telegram Stars per message.
                 The relevant Stars will be withdrawn from the bot's balance.
                 For bots only.
-
-            paid_message_star_count (``int``, *optional*):
-                The number of Telegram Stars the user agreed to pay to send the messages.
 
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
@@ -240,9 +218,6 @@ class SendVideo:
                 # Send self-destructing video
                 await app.send_video("me", "video.mp4", ttl_seconds=10)
 
-                # Add video_cover to the video
-                await app.send_video(channel_id, "video.mp4", video_cover="photo.jpg")
-
                 # Keep track of the progress while uploading
                 async def progress(current, total):
                     print(f"{current * 100 / total:.1f}%")
@@ -250,50 +225,8 @@ class SendVideo:
                 await app.send_video("me", "video.mp4", progress=progress)
         """
         file = None
-        vcover_file = None
-        vcover_media = None
-        peer = await self.resolve_peer(chat_id)
 
         try:
-            if video_cover is not None:
-                if isinstance(video_cover, str):
-                    if os.path.isfile(video_cover):
-                        vcover_media = await self.invoke(
-                            raw.functions.messages.UploadMedia(
-                                peer=peer,
-                                media=raw.types.InputMediaUploadedPhoto(
-                                    file=await self.save_file(video_cover)
-                                )
-                            )
-                        )
-                    elif re.match("^https?://", video_cover):
-                        vcover_media = await self.invoke(
-                            raw.functions.messages.UploadMedia(
-                                peer=peer,
-                                media=raw.types.InputMediaPhotoExternal(
-                                    url=video_cover
-                                )
-                            )
-                        )
-                    else:
-                        vcover_file = utils.get_input_media_from_file_id(video_cover, FileType.PHOTO).id
-                else:
-                    vcover_media = await self.invoke(
-                        raw.functions.messages.UploadMedia(
-                            peer=peer,
-                            media=raw.types.InputMediaUploadedPhoto(
-                                file=await self.save_file(video_cover)
-                            )
-                        )
-                    )
-
-                if vcover_media:
-                    vcover_file = raw.types.InputPhoto(
-                        id=vcover_media.photo.id,
-                        access_hash=vcover_media.photo.access_hash,
-                        file_reference=vcover_media.photo.file_reference
-                    )
-
             if isinstance(video, str):
                 if os.path.isfile(video):
                     thumb = await self.save_file(thumb)
@@ -304,8 +237,6 @@ class SendVideo:
                         ttl_seconds=ttl_seconds,
                         spoiler=has_spoiler,
                         thumb=thumb,
-                        video_cover=vcover_file,
-                        video_timestamp=video_start_timestamp,
                         nosound_video=no_sound,
                         attributes=[
                             raw.types.DocumentAttributeVideo(
@@ -321,9 +252,7 @@ class SendVideo:
                     media = raw.types.InputMediaDocumentExternal(
                         url=video,
                         ttl_seconds=ttl_seconds,
-                        spoiler=has_spoiler,
-                        video_cover=vcover_file,
-                        video_timestamp=video_start_timestamp
+                        spoiler=has_spoiler
                     )
                 else:
                     media = utils.get_input_media_from_file_id(video, FileType.VIDEO, ttl_seconds=ttl_seconds, has_spoiler=has_spoiler)
@@ -336,8 +265,6 @@ class SendVideo:
                     ttl_seconds=ttl_seconds,
                     spoiler=has_spoiler,
                     thumb=thumb,
-                    video_cover=vcover_file,
-                    video_timestamp=video_start_timestamp,
                     nosound_video=no_sound,
                     attributes=[
                         raw.types.DocumentAttributeVideo(
@@ -354,12 +281,12 @@ class SendVideo:
 
             while True:
                 try:
+                    peer = await self.resolve_peer(chat_id)
                     r = await self.invoke(
                         raw.functions.messages.SendMedia(
                             peer=peer,
                             media=media,
                             silent=disable_notification or None,
-                            invert_media=show_caption_above_media,
                             reply_to=utils.get_reply_to(
                                 reply_to_message_id=reply_to_message_id,
                                 message_thread_id=message_thread_id,
@@ -373,7 +300,6 @@ class SendVideo:
                             schedule_date=utils.datetime_to_timestamp(schedule_date),
                             noforwards=protect_content,
                             allow_paid_floodskip=allow_paid_broadcast,
-                            allow_paid_stars=paid_message_star_count,
                             reply_markup=await reply_markup.write(self) if reply_markup else None,
                             effect=effect_id,
                             **await utils.parse_text_entities(self, caption, parse_mode, caption_entities)

@@ -33,7 +33,6 @@ class ForwardStory:
         disable_notification: bool = None,
         message_thread_id: int = None,
         schedule_date: datetime = None,
-        paid_message_star_count: int = None,
     ) -> Optional["types.Message"]:
         """Forward story.
 
@@ -64,9 +63,6 @@ class ForwardStory:
             schedule_date (:py:obj:`~datetime.datetime`, *optional*):
                 Date when the message will be automatically sent.
 
-            paid_message_star_count (``int``, *optional*):
-                The number of Telegram Stars the user agreed to pay to send the messages.
-
         Returns:
             :obj:`~pyrogram.types.Message`: On success, the sent story message is returned.
 
@@ -90,8 +86,6 @@ class ForwardStory:
                 reply_to=utils.get_reply_to(
                     message_thread_id=message_thread_id
                 ),
-                allow_paid_stars=paid_message_star_count,
-
             )
         )
 

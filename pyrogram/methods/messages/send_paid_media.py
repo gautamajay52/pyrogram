@@ -19,7 +19,6 @@
 import logging
 import os
 from datetime import datetime
-import re
 from typing import Union, List, Optional
 
 import pyrogram
@@ -134,7 +133,6 @@ class SendPaidMedia:
                 )
         """
         multi_media = []
-        peer = await self.resolve_peer(chat_id)
 
         for i in media:
             if isinstance(i, types.InputMediaPhoto):
@@ -142,7 +140,7 @@ class SendPaidMedia:
                     if os.path.isfile(i.media):
                         media = await self.invoke(
                             raw.functions.messages.UploadMedia(
-                                peer=peer,
+                                peer=await self.resolve_peer(chat_id),
                                 media=raw.types.InputMediaUploadedPhoto(
                                     file=await self.save_file(i.media),
                                     spoiler=i.has_spoiler
@@ -163,7 +161,7 @@ class SendPaidMedia:
                 else:
                     media = await self.invoke(
                         raw.functions.messages.UploadMedia(
-                            peer=peer,
+                            peer=await self.resolve_peer(chat_id),
                             media=raw.types.InputMediaUploadedPhoto(
                                 file=await self.save_file(i.media),
                                 spoiler=i.has_spoiler
@@ -180,61 +178,17 @@ class SendPaidMedia:
                         spoiler=i.has_spoiler
                     )
             elif isinstance(i, types.InputMediaVideo):
-                vcover_file = None
-                vcover_media = None
-
-                if i.video_cover is not None:
-                    if isinstance(i.video_cover, str):
-                        if os.path.isfile(i.video_cover):
-                            vcover_media = await self.invoke(
-                                raw.functions.messages.UploadMedia(
-                                    peer=peer,
-                                    media=raw.types.InputMediaUploadedPhoto(
-                                        file=await self.save_file(i.video_cover)
-                                    )
-                                )
-                            )
-                        elif re.match("^https?://", i.video_cover):
-                            vcover_media = await self.invoke(
-                                raw.functions.messages.UploadMedia(
-                                    peer=peer,
-                                    media=raw.types.InputMediaPhotoExternal(
-                                        url=i.video_cover
-                                    )
-                                )
-                            )
-                        else:
-                            vcover_file = utils.get_input_media_from_file_id(i.video_cover, FileType.PHOTO).id
-                    else:
-                        vcover_media = await self.invoke(
-                            raw.functions.messages.UploadMedia(
-                                peer=peer,
-                                media=raw.types.InputMediaUploadedPhoto(
-                                    file=await self.save_file(i.video_cover)
-                                )
-                            )
-                        )
-
-                    if vcover_media:
-                        vcover_file = raw.types.InputPhoto(
-                            id=vcover_media.photo.id,
-                            access_hash=vcover_media.photo.access_hash,
-                            file_reference=vcover_media.photo.file_reference
-                        )
-
                 if isinstance(i.media, str):
                     if os.path.isfile(i.media):
                         media = await self.invoke(
                             raw.functions.messages.UploadMedia(
-                                peer=peer,
+                                peer=await self.resolve_peer(chat_id),
                                 media=raw.types.InputMediaUploadedDocument(
                                     file=await self.save_file(i.media),
                                     thumb=await self.save_file(i.thumb),
                                     spoiler=i.has_spoiler,
                                     mime_type=self.guess_mime_type(i.media) or "video/mp4",
                                     nosound_video=True,
-                                    video_cover=vcover_file,
-                                    video_timestamp=i.video_start_timestamp,
                                     attributes=[
                                         raw.types.DocumentAttributeVideo(
                                             supports_streaming=i.supports_streaming or None,
@@ -252,32 +206,22 @@ class SendPaidMedia:
                             id=raw.types.InputDocument(
                                 id=media.document.id,
                                 access_hash=media.document.access_hash,
-                                file_reference=media.document.file_reference,
+                                file_reference=media.document.file_reference
                             ),
-                            spoiler=i.has_spoiler,
-                            video_cover=vcover_file,
-                            video_timestamp=i.video_start_timestamp
+                            spoiler=i.has_spoiler
                         )
                     else:
-                        media = utils.get_input_media_from_file_id(
-                            i.media,
-                            FileType.VIDEO,
-                            has_spoiler=i.has_spoiler,
-                            video_cover=vcover_file,
-                            video_start_timestamp=i.video_start_timestamp
-                        )
+                        media = utils.get_input_media_from_file_id(i.media, FileType.VIDEO, has_spoiler=i.has_spoiler)
                 else:
                     media = await self.invoke(
                         raw.functions.messages.UploadMedia(
-                            peer=peer,
+                            peer=await self.resolve_peer(chat_id),
                             media=raw.types.InputMediaUploadedDocument(
                                 file=await self.save_file(i.media),
                                 thumb=await self.save_file(i.thumb),
                                 spoiler=i.has_spoiler,
                                 mime_type=self.guess_mime_type(getattr(i.media, "name", "video.mp4")) or "video/mp4",
                                 nosound_video=True,
-                                video_cover=vcover_file,
-                                video_timestamp=i.video_start_timestamp,
                                 attributes=[
                                     raw.types.DocumentAttributeVideo(
                                         supports_streaming=i.supports_streaming or None,
@@ -297,8 +241,6 @@ class SendPaidMedia:
                             access_hash=media.document.access_hash,
                             file_reference=media.document.file_reference
                         ),
-                        video_cover=vcover_file,
-                        video_timestamp=i.video_start_timestamp,
                         spoiler=i.has_spoiler
                     )
             else:
@@ -310,7 +252,7 @@ class SendPaidMedia:
 
         r = await self.invoke(
             raw.functions.messages.SendMedia(
-                peer=peer,
+                peer=await self.resolve_peer(chat_id),
                 media=raw.types.InputMediaPaidMedia(
                     stars_amount=stars_amount,
                     extended_media=multi_media,

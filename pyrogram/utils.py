@@ -36,25 +36,18 @@ from pyrogram.types.messages_and_media.message import Str
 from pyrogram.file_id import FileId, FileType, PHOTO_TYPES, DOCUMENT_TYPES
 
 
-async def ainput(prompt: str = "", *, hide: bool = False, loop: Optional[asyncio.AbstractEventLoop] = None):
+async def ainput(prompt: str = "", *, hide: bool = False):
     """Just like the built-in input, but async"""
-    if isinstance(loop, asyncio.AbstractEventLoop):
-        loop = loop
-    else:
-        loop = asyncio.get_event_loop()
-
     with ThreadPoolExecutor(1) as executor:
         func = functools.partial(getpass if hide else input, prompt)
-        return await loop.run_in_executor(executor, func)
+        return await asyncio.get_event_loop().run_in_executor(executor, func)
 
 
 def get_input_media_from_file_id(
     file_id: str,
     expected_file_type: FileType = None,
     ttl_seconds: int = None,
-    has_spoiler: bool = None,
-    video_cover: "raw.types.InputPhoto" = None,
-    video_start_timestamp: int = None,
+    has_spoiler: bool = None
 ) -> Union["raw.types.InputMediaPhoto", "raw.types.InputMediaDocument"]:
     try:
         decoded = FileId.decode(file_id)
@@ -91,9 +84,7 @@ def get_input_media_from_file_id(
                 file_reference=decoded.file_reference
             ),
             spoiler=has_spoiler,
-            ttl_seconds=ttl_seconds,
-            video_cover=video_cover,
-            video_timestamp=video_start_timestamp
+            ttl_seconds=ttl_seconds
         )
 
     raise ValueError(f"Unknown file id: {file_id}")
@@ -160,9 +151,8 @@ async def parse_messages(
 
                 if is_all_replies_in_same_chat:
                     reply_messages = await client.get_messages(
-                        chat_id=chat_id,
-                        message_ids=list(messages_with_replies.keys()),
-                        reply=True,
+                        chat_id,
+                        reply_to_message_ids=list(messages_with_replies.keys()),
                         replies=replies - 1
                     )
                 else:

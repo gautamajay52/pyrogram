@@ -31,7 +31,6 @@ from .get_bot_name import GetBotName
 from .get_chat_menu_button import GetChatMenuButton
 from .get_game_high_scores import GetGameHighScores
 from .get_inline_bot_results import GetInlineBotResults
-from .get_owned_bots import GetOwnedBots
 from .refund_star_payment import RefundStarPayment
 from .request_callback_answer import RequestCallbackAnswer
 from .send_game import SendGame
@@ -53,7 +52,6 @@ class Bots(
     AnswerShippingQuery,
     CreateInvoiceLink,
     GetInlineBotResults,
-    GetOwnedBots,
     RefundStarPayment,
     RequestCallbackAnswer,
     SendInlineBotResult,

@@ -36,8 +36,7 @@ class Connection:
         ipv6: bool,
         proxy: dict,
         media: bool = False,
-        protocol_factory: Type[TCP] = TCPAbridged,
-        loop: Optional[asyncio.AbstractEventLoop] = None
+        protocol_factory: Type[TCP] = TCPAbridged
     ) -> None:
         self.dc_id = dc_id
         self.test_mode = test_mode
@@ -49,14 +48,9 @@ class Connection:
         self.address = DataCenter(dc_id, test_mode, ipv6, media)
         self.protocol: Optional[TCP] = None
 
-        if isinstance(loop, asyncio.AbstractEventLoop):
-            self.loop = loop
-        else:
-            self.loop = asyncio.get_event_loop()
-
     async def connect(self) -> None:
         for i in range(Connection.MAX_CONNECTION_ATTEMPTS):
-            self.protocol = self.protocol_factory(ipv6=self.ipv6, proxy=self.proxy, loop=self.loop)
+            self.protocol = self.protocol_factory(ipv6=self.ipv6, proxy=self.proxy)
 
             try:
                 log.info("Connecting...")

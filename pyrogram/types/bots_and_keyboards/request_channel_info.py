@@ -16,39 +16,46 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
+from pyrogram import types
+
 from ..object import Object
 
 
-class KeyboardButtonRequestUsers(Object):
-    """Contains information about a user peer type.
+class RequestChannelInfo(Object):
+    """Contains information about a channel peer type.
 
     Parameters:
         button_id (``int``):
             Identifier of button.
 
-        user_is_bot (``bool``, *optional*):
-            Pass True to request bots, pass False to request regular users.
-            If not specified, no additional restrictions are applied.
+        is_creator (``bool``, *optional*):
+            If True, returns the list of chats owned by the user.
 
-        user_is_premium (``bool``, *optional*):
-            Pass True to request premium users, pass False to request non-premium users.
+        has_username (``bool``, *optional*):
+            If True, returns the list of chats with a username.
+            If False, returns the list of chats without a username.
             If not specified, no additional restrictions are applied.
+            Defaults to None.
 
-        max_quantity(``int``, *optional*):
-            The maximum number of users to be selected; 1-10.
-            Defaults to 1.
+        user_privileges (:obj:`~pyrogram.types.ChatPrivileges`, *optional*):
+            Privileged actions that an user administrator is able to take.
+
+        bot_privileges (:obj:`~pyrogram.types.ChatPrivileges`, *optional*):
+            Privileged actions that an bot administrator is able to take.
     """
 
     def __init__(
         self, *,
         button_id: int,
-        user_is_bot: bool = None,
-        user_is_premium: bool = None,
-        max_quantity: int = 1,
+        is_creator: bool = None,
+        has_username: bool = None,
+        user_privileges: "types.ChatPrivileges" = None,
+        bot_privileges: "types.ChatPrivileges" = None
     ):
         super().__init__()
 
         self.button_id = button_id
-        self.user_is_bot = user_is_bot
-        self.user_is_premium = user_is_premium
-        self.max_quantity = max_quantity
+        self.is_creator = is_creator
+        self.has_username = has_username
+        self.user_privileges = user_privileges
+        self.bot_privileges = bot_privileges

@@ -18,35 +18,27 @@
 
 from .apply_gift_code import ApplyGiftCode
 from .check_gift_code import CheckGiftCode
-from .convert_gift import ConvertGift
+from .convert_star_gift import ConvertStarGift
 from .get_payment_form import GetPaymentForm
-from .get_stars_balance import GetStarsBalance
-from .get_upgraded_gift import GetUpgradedGift
-from .get_available_gifts import GetAvailableGifts
-from .get_chat_gifts_count import GetChatGiftsCount
-from .get_chat_gifts import GetChatGifts
-from .hide_gift import HideGift
+from .get_star_gifts import GetStarGifts
+from .get_user_star_gifts_count import GetUserStarGiftsCount
+from .get_user_star_gifts import GetUserStarGifts
+from .hide_star_gift import HideStarGift
 from .send_payment_form import SendPaymentForm
-from .send_gift import SendGift
-from .show_gift import ShowGift
-from .transfer_gift import TransferGift
-from .upgrade_gift import UpgradeGift
+from .send_star_gift import SendStarGift
+from .show_star_gift import ShowStarGift
 
 class Payments(
     ApplyGiftCode,
     CheckGiftCode,
-    ConvertGift,
+    ConvertStarGift,
     GetPaymentForm,
-    GetStarsBalance,
-    GetUpgradedGift,
-    GetAvailableGifts,
-    GetChatGiftsCount,
-    GetChatGifts,
-    HideGift,
+    GetStarGifts,
+    GetUserStarGiftsCount,
+    GetUserStarGifts,
+    HideStarGift,
     SendPaymentForm,
-    SendGift,
-    ShowGift,
-    TransferGift,
-    UpgradeGift
+    SendStarGift,
+    ShowStarGift
 ):
     pass

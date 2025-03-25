@@ -24,9 +24,6 @@ from .auto_name import AutoName
 class MessageServiceType(AutoName):
     """Message service type enumeration used in :obj:`~pyrogram.types.Message`."""
 
-    UNSUPPORTED = auto()
-    "A message content that is not supported in the current pyrogram version"
-
     CUSTOM_ACTION = auto()
     "Custom action"
 
@@ -57,20 +54,17 @@ class MessageServiceType(AutoName):
     FORUM_TOPIC_EDITED = auto()
     "a new forum topic renamed in the chat"
 
-    GENERAL_FORUM_TOPIC_HIDDEN = auto()
-    "a general forum topic hidden in the chat"
+    GENERAL_TOPIC_HIDDEN = auto()
+    "a forum general topic hidden in the chat"
 
-    GENERAL_FORUM_TOPIC_UNHIDDEN = auto()
-    "a general forum topic unhidden in the chat"
+    GENERAL_TOPIC_UNHIDDEN = auto()
+    "a forum general topic unhidden in the chat"
 
     GROUP_CHAT_CREATED = auto()
     "Group chat created"
 
     CHANNEL_CHAT_CREATED = auto()
     "Channel chat created"
-
-    SUPERGROUP_CHAT_CREATED = auto()
-    "Supergroup chat created"
 
     MIGRATE_TO_CHAT_ID = auto()
     "Migrated to chat id"
@@ -93,12 +87,6 @@ class MessageServiceType(AutoName):
     GIFT_CODE = auto()
     "Gift code"
 
-    GIFTED_PREMIUM = auto()
-    "Gifted Telegram Premium"
-
-    GIFTED_STARS = auto()
-    "Gifted stars"
-
     VIDEO_CHAT_STARTED = auto()
     "Video chat started"
 
@@ -120,10 +108,7 @@ class MessageServiceType(AutoName):
     WEB_APP_DATA = auto()
     "Web app data"
 
-    USERS_SHARED = auto()
-    "Requested users"
-
-    CHAT_SHARED = auto()
+    REQUESTED_CHAT = auto()
     "Requested chat"
 
     SUCCESSFUL_PAYMENT = auto()
@@ -138,7 +123,7 @@ class MessageServiceType(AutoName):
     BOOST_APPLY = auto()
     "Boost apply"
 
-    GIFT = auto()
+    STAR_GIFT = auto()
     "Star gift"
 
     CONNECTED_WEBSITE = auto()
@@ -152,21 +137,3 @@ class MessageServiceType(AutoName):
 
     CONTACT_REGISTERED = auto()
     "Contact registered"
-
-    PROXIMITY_ALERT_TRIGGERED = auto()
-    "Proximity alert triggered"
-
-    HISTORY_CLEARED = auto()
-    "History clear"
-
-    SUGGEST_PROFILE_PHOTO = auto()
-    "Suggest profile photo"
-
-    CHAT_SET_BACKGROUND = auto()
-    "Set chat background"
-
-    CHAT_SET_THEME = auto()
-    "Set chat theme"
-
-    GIVEAWAY_PRIZE_STARS = auto()
-    "Giveaway prize stars"

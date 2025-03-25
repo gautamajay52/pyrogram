@@ -27,7 +27,7 @@ from pyrogram.handlers import (
     CallbackQueryHandler, MessageHandler, EditedMessageHandler, DeletedMessagesHandler,
     UserStatusHandler, RawUpdateHandler, InlineQueryHandler, PollHandler, PreCheckoutQueryHandler,
     ChosenInlineResultHandler, ChatMemberUpdatedHandler, ChatJoinRequestHandler, StoryHandler,
-    ShippingQueryHandler, MessageReactionHandler, MessageReactionCountHandler, ChatBoostHandler, PurchasedPaidMediaHandler
+    ShippingQueryHandler, MessageReactionHandler, MessageReactionCountHandler, ChatBoostHandler
 )
 from pyrogram.raw.types import (
     UpdateNewMessage, UpdateNewChannelMessage, UpdateNewScheduledMessage,
@@ -66,6 +66,7 @@ class Dispatcher:
 
     def __init__(self, client: "pyrogram.Client"):
         self.client = client
+        self.loop = asyncio.get_event_loop()
 
         self.handler_worker_tasks = []
         self.locks_list = []
@@ -186,7 +187,7 @@ class Dispatcher:
         async def purchased_paid_media_parser(update, users, chats):
             return (
                 pyrogram.types.PurchasedPaidMedia._parse(self.client, update, users),
-                PurchasedPaidMediaHandler
+                ChatBoostHandler
             )
 
         self.update_parsers = {
@@ -217,7 +218,7 @@ class Dispatcher:
                 self.locks_list.append(asyncio.Lock())
 
                 self.handler_worker_tasks.append(
-                    self.client.loop.create_task(self.handler_worker(self.locks_list[-1]))
+                    self.loop.create_task(self.handler_worker(self.locks_list[-1]))
                 )
 
             log.info("Started %s HandlerTasks", self.client.workers)
@@ -225,7 +226,7 @@ class Dispatcher:
             if not self.client.skip_updates:
                 await self.client.recover_gaps()
 
-    async def stop(self, clear: bool = True):
+    async def stop(self):
         if not self.client.no_updates:
             for i in range(self.client.workers):
                 self.updates_queue.put_nowait(None)
@@ -233,9 +234,8 @@ class Dispatcher:
             for i in self.handler_worker_tasks:
                 await i
 
-            if clear:
-                self.handler_worker_tasks.clear()
-                self.groups.clear()
+            self.handler_worker_tasks.clear()
+            self.groups.clear()
 
             log.info("Stopped %s HandlerTasks", self.client.workers)
 
@@ -254,7 +254,7 @@ class Dispatcher:
                 for lock in self.locks_list:
                     lock.release()
 
-        self.client.loop.create_task(fn())
+        self.loop.create_task(fn())
 
     def remove_handler(self, handler, group: int):
         async def fn():
@@ -270,7 +270,7 @@ class Dispatcher:
                 for lock in self.locks_list:
                     lock.release()
 
-        self.client.loop.create_task(fn())
+        self.loop.create_task(fn())
 
     async def handler_worker(self, lock):
         while True:
@@ -303,12 +303,7 @@ class Dispatcher:
                                     continue
 
                             elif isinstance(handler, RawUpdateHandler):
-                                try:
-                                    if await handler.check(self.client, update):
-                                        args = (update, users, chats)
-                                except Exception as e:
-                                    log.exception(e)
-                                    continue
+                                args = (update, users, chats)
 
                             if args is None:
                                 continue
@@ -317,7 +312,7 @@ class Dispatcher:
                                 if inspect.iscoroutinefunction(handler.callback):
                                     await handler.callback(self.client, *args)
                                 else:
-                                    await self.client.loop.run_in_executor(
+                                    await self.loop.run_in_executor(
                                         self.client.executor,
                                         handler.callback,
                                         self.client,

@@ -166,28 +166,15 @@ ActiveSession
 
     {active_session_toctree}
 
-Gift
+StarGift
 --------
 
 .. hlist::
     :columns: 2
 
-    {gift_hlist}
+    {star_gift_hlist}
 
 .. toctree::
     :hidden:
 
-    {gift_toctree}
-
-Animation
----------
-
-.. hlist::
-    :columns: 2
-
-    {animation_hlist}
-
-.. toctree::
-    :hidden:
-
-    {animation_toctree}
+    {star_gift_toctree}

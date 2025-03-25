@@ -45,7 +45,7 @@ class Proxy(TypedDict):
 class TCP:
     TIMEOUT = 10
 
-    def __init__(self, ipv6: bool, proxy: Proxy, loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
+    def __init__(self, ipv6: bool, proxy: Proxy) -> None:
         self.ipv6 = ipv6
         self.proxy = proxy
 
@@ -53,11 +53,7 @@ class TCP:
         self.writer: Optional[asyncio.StreamWriter] = None
 
         self.lock = asyncio.Lock()
-
-        if isinstance(loop, asyncio.AbstractEventLoop):
-            self.loop = loop
-        else:
-            self.loop = asyncio.get_event_loop()
+        self.loop = asyncio.get_event_loop()
 
     async def _connect_via_proxy(
         self,
@@ -137,14 +133,12 @@ class TCP:
             await asyncio.wait_for(self.writer.wait_closed(), TCP.TIMEOUT)
         except Exception as e:
             log.info("Close exception: %s %s", type(e).__name__, e)
-        finally:
-            self.writer = None
 
     async def send(self, data: bytes) -> None:
-        async with self.lock:
-            if self.writer is None or self.writer.is_closing():
-                return None
+        if self.writer is None:
+            return None
 
+        async with self.lock:
             try:
                 self.writer.write(data)
                 await self.writer.drain()

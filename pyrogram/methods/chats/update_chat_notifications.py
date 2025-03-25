@@ -16,12 +16,13 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Union
 
 import pyrogram
-from pyrogram import raw, utils
-
+from pyrogram import raw
+from pyrogram import types
+from pyrogram import utils
 
 class UpdateChatNotifications:
     async def update_chat_notifications(
@@ -32,7 +33,7 @@ class UpdateChatNotifications:
         stories_muted: bool = None,
         stories_hide_sender: bool = None,
         show_previews: bool = None
-    ) -> bool:
+    ) -> "types.Chat":
         """Update the notification settings for the selected chat
 
         Parameters:

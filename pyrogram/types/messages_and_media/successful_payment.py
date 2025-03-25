@@ -16,11 +16,10 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
-from typing import Optional, Union
+from typing import Union, Optional
 
-from pyrogram import raw, types, utils
-
+from pyrogram import raw
+from pyrogram import types
 from ..object import Object
 
 
@@ -50,16 +49,13 @@ class SuccessfulPayment(Object):
             Payment information provided by the user. Only available to the bot that received the payment.
 
         is_recurring (``bool``, *optional*):
-            True, if the payment is a recurring payment for a subscription.
+            True, if this is a recurring payment.
 
         is_first_recurring (``bool``, *optional*):
-            True, if the payment is the first payment for a subscription.
+            True, if this is the first recurring payment.
 
         invoice_slug (``str``, *optional*):
             Name of the invoice.
-
-        subscription_expiration_date (:py:obj:`~datetime.datetime`, *optional*):
-            Expiration date of the subscription, in Unix time; for recurring payments only.
     """
 
     def __init__(
@@ -73,8 +69,7 @@ class SuccessfulPayment(Object):
         order_info: Optional["types.OrderInfo"] = None,
         is_recurring: Optional[bool] = None,
         is_first_recurring: Optional[bool] = None,
-        invoice_slug: Optional[str] = None,
-        subscription_expiration_date: datetime = None,
+        invoice_slug: Optional[str] = None
     ):
         super().__init__()
 
@@ -88,11 +83,10 @@ class SuccessfulPayment(Object):
         self.is_recurring = is_recurring
         self.is_first_recurring = is_first_recurring
         self.invoice_slug = invoice_slug
-        self.subscription_expiration_date = subscription_expiration_date
 
     @staticmethod
     def _parse(
-        payment: Union[
+        successful_payment: Union[
             "raw.types.MessageActionPaymentSent",
             "raw.types.MessageActionPaymentSentMe"
         ]) -> "SuccessfulPayment":
@@ -102,45 +96,44 @@ class SuccessfulPayment(Object):
         shipping_option_id = None
         order_info = None
 
-        if isinstance(payment, raw.types.MessageActionPaymentSentMe):
+        if isinstance(successful_payment, raw.types.MessageActionPaymentSentMe):
             # Try to decode invoice payload into string. If that fails, fallback to bytes instead of decoding by
             # ignoring/replacing errors, this way, button clicks will still work.
             try:
-                invoice_payload = payment.payload.decode()
+                invoice_payload = successful_payment.payload.decode()
             except (UnicodeDecodeError, AttributeError):
-                invoice_payload = payment.payload
+                invoice_payload = successful_payment.payload
 
-            telegram_payment_charge_id = payment.charge.id
-            provider_payment_charge_id = payment.charge.provider_charge_id
-            shipping_option_id = getattr(payment, "shipping_option_id")
+            telegram_payment_charge_id = successful_payment.charge.id
+            provider_payment_charge_id = successful_payment.charge.provider_charge_id
+            shipping_option_id = getattr(successful_payment, "shipping_option_id")
 
-            if payment.info:
-                payment_info = payment.info
+            if successful_payment.info:
+                payment_info = successful_payment.info
 
                 order_info = types.OrderInfo(
                     name=getattr(payment_info, "name", None),
                     phone_number=getattr(payment_info, "phone", None),
                     email=getattr(payment_info, "email", None),
                     shipping_address=types.ShippingAddress(
-                        country_code=payment.info.shipping_address.country_iso2,
-                        state=payment.info.shipping_address.state,
-                        city=payment.info.shipping_address.city,
-                        street_line1=payment.info.shipping_address.street_line1,
-                        street_line2=payment.info.shipping_address.street_line2,
-                        post_code=payment.info.shipping_address.post_code
+                        country_code=successful_payment.info.shipping_address.country_iso2,
+                        state=successful_payment.info.shipping_address.state,
+                        city=successful_payment.info.shipping_address.city,
+                        street_line1=successful_payment.info.shipping_address.street_line1,
+                        street_line2=successful_payment.info.shipping_address.street_line2,
+                        post_code=successful_payment.info.shipping_address.post_code
                     )
                 )
 
         return SuccessfulPayment(
-            currency=payment.currency,
-            total_amount=payment.total_amount,
+            currency=successful_payment.currency,
+            total_amount=successful_payment.total_amount,
             invoice_payload=invoice_payload,
             telegram_payment_charge_id=telegram_payment_charge_id,
             provider_payment_charge_id=provider_payment_charge_id,
             shipping_option_id=shipping_option_id,
             order_info=order_info,
-            is_recurring=getattr(payment, "recurring_used", None),
-            is_first_recurring=getattr(payment, "recurring_init", None),
-            invoice_slug=getattr(payment, "invoice_slug", None),
-            subscription_expiration_date=utils.timestamp_to_datetime(payment.subscription_until_date),
+            is_recurring=getattr(successful_payment, "recurring_used", None),
+            is_first_recurring=getattr(successful_payment, "recurring_init", None),
+            invoice_slug=getattr(successful_payment, "invoice_slug", None),
         )
